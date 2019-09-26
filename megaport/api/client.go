@@ -27,11 +27,11 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-func (c *Client) Authenticate(username, password string) error {
+func (c *Client) Login(username, password string) error {
 	v := url.Values{}
 	v.Set("username", username)
 	v.Set("password", password)
-	//	v.Set("oneTimePassword", "")
+	// v.Set("oneTimePassword", "")
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/login?%s", c.baseURL, v.Encode()), nil)
 	if err != nil {
 		return err
@@ -42,6 +42,14 @@ func (c *Client) Authenticate(username, password string) error {
 	}
 	c.token = data.Token
 	return nil
+}
+
+func (c *Client) Logout() error {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/logout", c.baseURL), nil)
+	if err != nil {
+		return err
+	}
+	return c.do(req, nil)
 }
 
 func (c *Client) GetLocations() ([]Location, error) {
