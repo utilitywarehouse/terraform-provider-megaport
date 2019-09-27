@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 const (
@@ -62,6 +63,32 @@ func (c *Client) GetLocations() ([]Location, error) {
 		return nil, err
 	}
 	data := []Location{}
+	if err := c.do(req, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (c *Client) GetMegaports() ([]Megaport, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/dropdowns/partner/megaports", c.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	data := []Megaport{}
+	if err := c.do(req, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (c *Client) GetInternetExchanges(locationId uint64) ([]InternetExchange, error) {
+	v := url.Values{}
+	v.Set("locationId", strconv.FormatUint(locationId, 10))
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/ix/types?%s", c.baseURL, v.Encode()), nil)
+	if err != nil {
+		return nil, err
+	}
+	data := []InternetExchange{}
 	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}
