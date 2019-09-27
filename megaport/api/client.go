@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -25,6 +25,10 @@ func NewClient(baseURL string) *Client {
 		c:       &http.Client{},
 		baseURL: baseURL,
 	}
+}
+
+func (c *Client) SetToken(token string) {
+	c.token = token
 }
 
 func (c *Client) Login(username, password string) error {
