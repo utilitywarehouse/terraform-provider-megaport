@@ -27,7 +27,7 @@ type Location struct {
 	Metro            string
 	Name             string
 	NetworkRegion    string
-	Products         Products
+	Products         LocationProducts
 	SiteCode         string
 	Status           string
 	VRouterAvailable bool
@@ -43,7 +43,7 @@ type Address struct {
 	Suburb   string
 }
 
-type Products struct {
+type LocationProducts struct {
 	MCR        bool
 	MCRVersion uint64
 	MCR1       []uint64
