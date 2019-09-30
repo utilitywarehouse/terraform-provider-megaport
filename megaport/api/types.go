@@ -83,3 +83,111 @@ type IPAddress struct {
 	Type  string
 	Value string
 }
+
+type Product struct {
+	AdminLocked bool
+	// AggregationId // TODO: haven't seen a value other than null
+	// AssociatedIxs []ProductsAssociatedIx // TODO: haven't seen a value other than an empty list
+	AssociatedVxcs []ProductAssociatedVxc
+	// AttributeTags // TODO: haven't seen a value other than an empty map
+	BuyoutPort         bool
+	Cancelable         bool
+	CompanyName        string
+	CompanyUid         string
+	ContractStartDate  uint64
+	ContractEndDate    uint64
+	ContractTermMonths uint64
+	CreateDate         uint64
+	CreatedBy          string
+	// LagId // TODO: haven't seen a value other than null
+	LagPrimary            bool
+	LiveDate              uint64
+	LocationId            uint64
+	Locked                bool
+	Market                string
+	MarketplaceVisibility bool
+	PortSpeed             uint64
+	ProductName           string
+	ProductType           string
+	ProductUid            string
+	ProvisioningStatus    string
+	Resources             []ProductResources
+	// SecondaryName // TODO: haven't seen a value other than null
+	// TerminateDate // TODO: haven't seen a value other than null
+	// UsageAlgorithm // TODO: haven't seen a value other than null
+	Virtual         bool
+	VxcPermitted    bool
+	VxcAutoApproval bool
+}
+
+type ProductResources struct { // TODO: verify these are the only valid fields
+	// CrossConnect  ProductResourcesCrossConnect `json:"cross_connect"` // TODO: only referenced in https://dev.megaport.com/#general-get-product-list
+	Interface     ProductResourcesInterface
+	VirtualRouter ProductResourcesVirtualRouter `json:"virtual_router"`
+}
+
+type ProductResourcesInterface struct {
+	Demarcation  string
+	Description  string
+	Id           uint64
+	LoaTemplate  string `json:"loa_template"`
+	Media        string
+	Name         string
+	PortSpeed    uint64 `json:"port_speed"`
+	ResourceName string `json:"resource_name"`
+	ResourceType string `json:"resource_type"`
+	// SupportedSpeeds []uint64 `json:"supported_speeds"` // TODO: only referenced in https://dev.megaport.com/#general-get-product-list
+	Up uint64
+}
+
+type ProductResourcesVirtualRouter struct {
+	Id           uint64
+	McrASN       uint64
+	Name         string
+	ResourceName string `json:"resource_name"`
+	ResourceType string `json:"resource_type"`
+	Speed        uint64
+}
+
+type ProductAssociatedVxc struct {
+	AdminLocked bool
+	// AttributeTags // TODO: haven't seen a value other than an empty map
+	AEnd               ProductAssociatedVxcEnd
+	BEnd               ProductAssociatedVxcEnd
+	Cancelable         bool
+	ContractEndDate    uint64 // TODO: haven't seen a value other than null, despite the note in https://dev.megaport.com/#general-get-product-list
+	ContractStartDate  uint64 // TODO: haven't seen a value other than null, despite the note in https://dev.megaport.com/#general-get-product-list
+	ContractTermMonths uint64
+	CostCentre         string
+	CreatedBy          string // TODO: haven't seen a value other than null
+	CreateDate         uint64
+	DistanceBand       string
+	Locked             bool
+	// NServiceId // TODO: haven't seen a value other than null
+	ProductName        string
+	ProductType        string
+	ProductUid         string
+	ProvisioningStatus string
+	RateLimit          uint64
+	SecondaryName      string
+	UsageAlgorithm     string
+	VxcApproval        ProductAssociatedVxcApproval
+}
+
+type ProductAssociatedVxcEnd struct {
+	LocationId  uint64
+	Location    string
+	OwnerUid    string
+	ProductUid  string
+	ProductName string
+	Vlan        uint64
+	// SecondaryName // TODO: haven't seen a value other than null
+}
+
+type ProductAssociatedVxcApproval struct {
+	// Message // TODO: haven't seen a value other than null
+	// NewSpeed // TODO: haven't seen a value other than null
+	// Status // TODO: haven't seen a value other than null
+	// Type // TODO: haven't seen a value other than null
+	// Uid // TODO: haven't seen a value other than null
+}
