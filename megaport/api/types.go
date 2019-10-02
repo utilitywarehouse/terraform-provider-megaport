@@ -191,3 +191,21 @@ type ProductAssociatedVxcApproval struct {
 	// Type // TODO: haven't seen a value other than null
 	// Uid // TODO: haven't seen a value other than null
 }
+
+type Charges struct {
+	Currency             string
+	DailyRate            float64
+	DailySetup           float64
+	Empty                bool
+	FixedRecurringCharge float64
+	// ForceProductChange // TODO: haven't seen a value other than null
+	HourlyRate  float64
+	HourlySetup float64
+	// Key string // TODO: haven't seen a value other than "no key"
+	LongHaulMbpsRate float64
+	MbpsRate         float64
+	MonthlyRate      float64
+	MonthlySetup     float64
+	// PostPaidBaseRate // TODO: haven't seen a value other than "no base rate"
+	ProductType string
+}

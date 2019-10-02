@@ -95,6 +95,66 @@ func (c *Client) GetInternetExchanges(locationId uint64) ([]InternetExchange, er
 	return data, nil
 }
 
+func (c *Client) GetMegaportPrice(locationId, speed, term uint64, productUid string, buyoutPort bool) (*Charges, error) {
+	v := url.Values{}
+	v.Set("locationId", strconv.FormatUint(locationId, 10))
+	v.Set("speed", strconv.FormatUint(speed, 10))
+	v.Set("term", strconv.FormatUint(term, 10))
+	v.Set("buyoutPort", strconv.FormatBool(buyoutPort))
+	if productUid != "" {
+		v.Set("productUid", productUid) // TODO: can we just set to empty?
+	}
+	return c.getCharges("megaport", v)
+}
+
+func (c *Client) GetMCR1Price(locationId, speed uint64, productUid string) (*Charges, error) {
+	v := url.Values{}
+	v.Set("locationId", strconv.FormatUint(locationId, 10))
+	v.Set("speed", strconv.FormatUint(speed, 10))
+	if productUid != "" {
+		v.Set("productUid", productUid) // TODO: can we just set to empty?
+	}
+	return c.getCharges("mcr", v)
+}
+
+func (c *Client) GetMCR2Price(locationId, speed uint64, productUid string) (*Charges, error) {
+	v := url.Values{}
+	v.Set("locationId", strconv.FormatUint(locationId, 10))
+	v.Set("speed", strconv.FormatUint(speed, 10))
+	if productUid != "" {
+		v.Set("productUid", productUid) // TODO: can we just set to empty?
+	}
+	return c.getCharges("mcr2", v)
+}
+
+func (c *Client) GetVxcPrice(aLocationId, bLocationId, speed uint64) (*Charges, error) {
+	v := url.Values{}
+	v.Set("aLocationId", strconv.FormatUint(aLocationId, 10))
+	v.Set("bLocationId", strconv.FormatUint(bLocationId, 10))
+	v.Set("speed", strconv.FormatUint(speed, 10))
+	return c.getCharges("vxc", v)
+}
+
+func (c *Client) GetIxPrice(ixType string, locationId, speed uint64) (*Charges, error) {
+	v := url.Values{}
+	v.Set("ixType", ixType)
+	v.Set("portLocationId", strconv.FormatUint(locationId, 10))
+	v.Set("speed", strconv.FormatUint(speed, 10))
+	return c.getCharges("ix", v)
+}
+
+func (c *Client) getCharges(product string, v url.Values) (*Charges, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/pricebook/%s?%s", c.baseURL, product, v.Encode()), nil)
+	if err != nil {
+		return nil, err
+	}
+	data := &Charges{}
+	if err := c.do(req, data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
 func (c *Client) do(req *http.Request, data interface{}) error {
 	req.Header.Set("Content-Type", "application/json")
 	if c.token != "" {
