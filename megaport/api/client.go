@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -156,6 +157,7 @@ func (c *Client) getCharges(product string, v url.Values) (*Charges, error) {
 }
 
 func (c *Client) do(req *http.Request, data interface{}) error {
+	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	if c.token != "" {
 		req.Header.Set("X-Auth-Token", c.token)
@@ -166,10 +168,17 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 	}
 	r := megaportResponse{}
 	if resp.StatusCode != http.StatusOK {
+		r.Data = map[string]interface{}{}
 		if err = parseResponseBody(resp, &r); err != nil {
 			return err
 		}
-		return fmt.Errorf("megaport: %s", r.Message)
+		errData := &strings.Builder{}
+		for k, v := range r.Data.(map[string]interface{}) {
+			if _, err := fmt.Fprintf(errData, "%s=%#v ", k, v); err != nil {
+				return err
+			}
+		}
+		return fmt.Errorf("megaport-api: %s (%s)", r.Message, strings.TrimSpace(errData.String()))
 	}
 	r.Data = data
 	return parseResponseBody(resp, &r)
