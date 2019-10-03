@@ -57,12 +57,12 @@ func (c *Client) Logout() error {
 	return c.do(req, nil)
 }
 
-func (c *Client) GetLocations() ([]Location, error) {
+func (c *Client) GetLocations() ([]*Location, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/locations", c.baseURL), nil)
 	if err != nil {
 		return nil, err
 	}
-	data := []Location{}
+	data := []*Location{}
 	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}

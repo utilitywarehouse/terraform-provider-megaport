@@ -1,9 +1,16 @@
 package megaport
 
 import (
+	"log"
+
+	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
+)
+
+var (
+	megaportMutexKV = mutexkv.NewMutexKV()
 )
 
 type Config struct {
@@ -25,9 +32,9 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"megaport_locations":          dataSourceLocations(),
-			"megaport_megaports":          dataSourceMegaports(),
-			"megaport_internet_exchanges": dataSourceInternetExchanges(),
+			"megaport_location":           dataSourceMegaportLocation(),
+			"megaport_megaports":          dataSourceMegaportMegaports(),
+			"megaport_internet_exchanges": dataSourceMegaportInternetExchanges(),
 		},
 
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
