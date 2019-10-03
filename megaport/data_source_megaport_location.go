@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
+	"strconv"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -70,7 +70,7 @@ func dataSourceMegaportLocationRead(d *schema.ResourceData, m interface{}) error
 	if len(filtered) > 1 {
 		return fmt.Errorf("Multiple locations were found. Please use a more specific query.")
 	}
-	d.SetId(time.Now().UTC().String()) // TODO: use uuid
+	d.SetId(newUUID(strconv.FormatUint(filtered[0].Id, 10)))
 	d.Set("location_id", filtered[0].Id)
 	return nil
 }
