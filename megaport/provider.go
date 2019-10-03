@@ -27,6 +27,11 @@ func Provider() terraform.ResourceProvider {
 					"MEGAPORT_TOKEN",
 				}, nil),
 			},
+			"api_endpoint": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  api.EndpointProduction,
+			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{},
@@ -38,8 +43,13 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
-			client := api.NewClient(api.EndpointProduction)
-			if v, ok := d.GetOk("token"); ok {
+			endpoint := api.EndpointProduction
+			if e, ok := d.GetOk("api_endpoint"); ok {
+				endpoint = e.(string)
+			}
+			client := api.NewClient(endpoint)
+			log.Printf("initialised megaport api client at %s", endpoint)
+			if v, ok := d.GetOk("token"); ok { // TODO: is it an error if not found?
 				client.SetToken(v.(string))
 			}
 			return &Config{
