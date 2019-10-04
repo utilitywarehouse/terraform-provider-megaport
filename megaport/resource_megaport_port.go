@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportPort() *schema.Resource {
@@ -123,8 +122,7 @@ func resourceMegaportPort() *schema.Resource {
 func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	log.Printf("!!! READ")
-	ports := api.NewPorts(cfg.Client)
-	p, err := ports.Read(d.Id())
+	p, err := cfg.Client.Ports.Get(d.Id())
 	if err != nil {
 		return err
 	}
@@ -155,12 +153,9 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	log.Printf("!!! CREATE")
-	o := api.NewPortOrder(d.Get("name").(string), uint64(d.Get("location_id").(int)),
-		uint64(d.Get("speed").(int)), uint64(d.Get("term").(int)))
-	if err := cfg.Client.ValidatePortOrder(o); err != nil {
-		return err
-	}
-	uid, err := cfg.Client.PostPortOrder(o)
+	uid, err := cfg.Client.Ports.Create(d.Get("name").(string),
+		uint64(d.Get("location_id").(int)), uint64(d.Get("speed").(int)),
+		uint64(d.Get("term").(int)), true)
 	if err != nil {
 		return err
 	}

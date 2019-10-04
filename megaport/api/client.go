@@ -17,16 +17,18 @@ const (
 )
 
 type Client struct {
-	c       *http.Client
-	baseURL string
-	Token   string
+	c         *http.Client
+	baseURL   string // TODO: export this
+	Token     string
+	UserAgent string
+
+	Ports *PortsService
 }
 
 func NewClient(baseURL string) *Client {
-	return &Client{
-		c:       &http.Client{},
-		baseURL: baseURL,
-	}
+	c := &Client{c: &http.Client{}, baseURL: baseURL}
+	c.Ports = NewPortsService(c)
+	return c
 }
 
 func (c *Client) Login(username, password, otp string) error {
