@@ -50,7 +50,7 @@ func Provider() terraform.ResourceProvider {
 			client := api.NewClient(endpoint)
 			log.Printf("initialised megaport api client at %s", endpoint)
 			if v, ok := d.GetOk("token"); ok { // TODO: is it an error if not found?
-				client.SetToken(v.(string))
+				client.Token = v.(string)
 			}
 			return &Config{
 				Client: client,

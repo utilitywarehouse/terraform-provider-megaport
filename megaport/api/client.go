@@ -19,7 +19,7 @@ const (
 type Client struct {
 	c       *http.Client
 	baseURL string
-	token   string
+	Token   string
 }
 
 func NewClient(baseURL string) *Client {
@@ -29,15 +29,13 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-func (c *Client) SetToken(token string) {
-	c.token = token
-}
-
-func (c *Client) Login(username, password string) error {
+func (c *Client) Login(username, password, otp string) error {
 	v := url.Values{}
 	v.Set("username", username)
 	v.Set("password", password)
-	// v.Set("oneTimePassword", "")
+	if otp != "" {
+		v.Set("oneTimePassword", otp)
+	}
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/login?%s", c.baseURL, v.Encode()), nil)
 	if err != nil {
 		return err
@@ -46,7 +44,7 @@ func (c *Client) Login(username, password string) error {
 	if err := c.do(req, &data); err != nil {
 		return err
 	}
-	c.token = data.Token
+	c.Token = data.Token
 	return nil
 }
 
@@ -159,8 +157,8 @@ func (c *Client) getCharges(product string, v url.Values) (*Charges, error) {
 func (c *Client) do(req *http.Request, data interface{}) error {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-	if c.token != "" {
-		req.Header.Set("X-Auth-Token", c.token)
+	if c.Token != "" {
+		req.Header.Set("X-Auth-Token", c.Token)
 	}
 	resp, err := c.c.Do(req)
 	if err != nil {
