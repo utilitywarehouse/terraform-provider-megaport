@@ -1,5 +1,9 @@
 package api
 
+import (
+	"encoding/json"
+)
+
 // Some of the following types differ from examples seen in the documentation at
 // https://dev.megaport.com. In some cases, the API responds with a different
 // set of fields and/or field types and so the structs in this file match that,
@@ -111,7 +115,7 @@ type Product struct {
 	ProductType           string
 	ProductUid            string
 	ProvisioningStatus    string
-	Resources             []ProductResources
+	Resources             ProductResources
 	// SecondaryName // TODO: haven't seen a value other than null
 	// TerminateDate // TODO: haven't seen a value other than null
 	// UsageAlgorithm // TODO: haven't seen a value other than null
@@ -129,15 +133,32 @@ type ProductResources struct { // TODO: verify these are the only valid fields
 type ProductResourcesInterface struct {
 	Demarcation  string
 	Description  string
-	Id           uint64
+	Id           uint64 `json:"-"`
+	_id          float64
 	LoaTemplate  string `json:"loa_template"`
 	Media        string
 	Name         string
-	PortSpeed    uint64 `json:"port_speed"`
-	ResourceName string `json:"resource_name"`
-	ResourceType string `json:"resource_type"`
+	PortSpeed    uint64  `json:"-"`
+	_portSpeed   float64 `json:"port_speed"`
+	ResourceName string  `json:"resource_name"`
+	ResourceType string  `json:"resource_type"`
 	// SupportedSpeeds []uint64 `json:"supported_speeds"` // TODO: only referenced in https://dev.megaport.com/#general-get-product-list
-	Up uint64
+	Up  uint64 `json:"-"`
+	_up float64
+}
+
+type productResourcesInterface ProductResourcesInterface
+
+func (pri *ProductResourcesInterface) UnmarshalJSON(b []byte) (err error) {
+	v := productResourcesInterface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	*pri = ProductResourcesInterface(v)
+	pri.Id = uint64(pri._id)
+	pri.PortSpeed = uint64(pri._portSpeed)
+	pri.Up = uint64(pri._up)
+	return nil
 }
 
 type ProductResourcesVirtualRouter struct {
