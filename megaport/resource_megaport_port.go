@@ -47,58 +47,8 @@ func resourceMegaportPort() *schema.Resource {
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"rate_limit": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"a_end": {
-							Type:       schema.TypeSet,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"vlan": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									// TODO: untag?
-									// TODO: product_uid might be needed for independant?
-								},
-							},
-						},
-						"b_end": {
-							Type:       schema.TypeSet,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"product_uid": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"vlan": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-								},
-							},
-						},
-						"invoice_reference": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
+				Elem:       vxcResource,
+				Set:        schema.HashResource(vxcResource),
 			},
 			"marketplace_visibility": {
 				Type:     schema.TypeString,
@@ -120,6 +70,65 @@ func resourceMegaportPort() *schema.Resource {
 	}
 }
 
+var (
+	vxcResource = &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"rate_limit": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"a_end": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem:       vxcAEndResource,
+			},
+			"b_end": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem:       vxcBEndResource,
+			},
+			"invoice_reference": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+		},
+	}
+
+	vxcAEndResource = &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"vlan": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			// TODO: untag?
+			// TODO: product_uid might be needed for independant?
+		},
+	}
+
+	vxcBEndResource = &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"product_uid": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"vlan": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+		},
+	}
+)
+
 func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	p, err := cfg.Client.Port.Get(d.Id())
@@ -132,21 +141,21 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", p.ProductName)
 	d.Set("speed", p.PortSpeed)
 	d.Set("term", p.ContractTermMonths)
-	vxcs := make([]map[string]interface{}, len(p.AssociatedVxcs))
+	vxcs := make([]interface{}, len(p.AssociatedVxcs))
 	for i, v := range p.AssociatedVxcs {
 		vxcs[i] = map[string]interface{}{
 			"name":       v.ProductName,
-			"rate_limit": v.RateLimit,
-			"a_end": map[string]interface{}{
-				"vlan": v.AEnd.Vlan,
-			},
-			"b_end": map[string]interface{}{
+			"rate_limit": int(v.RateLimit),
+			"a_end": schema.NewSet(schema.HashResource(vxcAEndResource), []interface{}{map[string]interface{}{
+				"vlan": int(v.AEnd.Vlan),
+			}}),
+			"b_end": schema.NewSet(schema.HashResource(vxcBEndResource), []interface{}{map[string]interface{}{
 				"product_uid": v.BEnd.ProductUid,
-				"vlan":        v.BEnd.Vlan,
-			},
+				"vlan":        int(v.BEnd.Vlan),
+			}}),
 		}
 	}
-	d.Set("associated_vxcs", vxcs)
+	d.Set("associated_vxcs", schema.NewSet(schema.HashResource(vxcResource), vxcs))
 	d.Set("marketplace_visibility", p.MarketplaceVisibility)
 	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil
