@@ -35,7 +35,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"megaport_port": resourceMegaportPort(),
+			"megaport_port":        resourceMegaportPort(),
+			"megaport_private_vxc": resourceMegaportPrivateVxc(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
