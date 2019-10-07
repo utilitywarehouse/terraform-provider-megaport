@@ -181,17 +181,23 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 		return ErrNotFound
 	}
 	if resp.StatusCode != http.StatusOK {
-		r.Data = map[string]interface{}{}
 		if err = parseResponseBody(resp, &r); err != nil {
 			return err
 		}
-		errData := &strings.Builder{}
-		for k, v := range r.Data.(map[string]interface{}) {
-			if _, err := fmt.Fprintf(errData, "%s=%#v ", k, v); err != nil {
-				return err
+		switch e := r.Data.(type) {
+		case string:
+			return fmt.Errorf("megaport-api: %s (%s)", r.Message, e)
+		case map[string]interface{}:
+			errData := &strings.Builder{}
+			for k, v := range e {
+				if _, err := fmt.Fprintf(errData, "%s=%#v ", k, v); err != nil {
+					return err
+				}
 			}
+			return fmt.Errorf("megaport-api: %s (%s)", r.Message, strings.TrimSpace(errData.String()))
+		default:
+			return fmt.Errorf("megaport-api: %s (cannot process data of type %T: %#v", r.Message, e, e)
 		}
-		return fmt.Errorf("megaport-api: %s (%s)", r.Message, strings.TrimSpace(errData.String()))
 	}
 	r.Data = data
 	return parseResponseBody(resp, &r)
