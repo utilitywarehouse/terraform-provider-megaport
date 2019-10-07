@@ -30,11 +30,13 @@ type Client struct {
 	UserAgent string
 
 	Port *PortService
+	Vxc  *VxcService
 }
 
 func NewClient(baseURL string) *Client {
 	c := &Client{c: &http.Client{}, BaseURL: baseURL}
 	c.Port = NewPortService(c)
+	c.Vxc = NewVxcService(c)
 	return c
 }
 
@@ -77,12 +79,12 @@ func (c *Client) GetLocations() ([]*Location, error) {
 	return data, nil
 }
 
-func (c *Client) GetMegaports() ([]Megaport, error) {
+func (c *Client) GetMegaports() ([]*Megaport, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/dropdowns/partner/megaports", c.BaseURL), nil)
 	if err != nil {
 		return nil, err
 	}
-	data := []Megaport{}
+	data := []*Megaport{}
 	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}
@@ -179,17 +181,23 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 		return ErrNotFound
 	}
 	if resp.StatusCode != http.StatusOK {
-		r.Data = map[string]interface{}{}
 		if err = parseResponseBody(resp, &r); err != nil {
 			return err
 		}
-		errData := &strings.Builder{}
-		for k, v := range r.Data.(map[string]interface{}) {
-			if _, err := fmt.Fprintf(errData, "%s=%#v ", k, v); err != nil {
-				return err
+		switch e := r.Data.(type) {
+		case string:
+			return fmt.Errorf("megaport-api: %s (%s)", r.Message, e)
+		case map[string]interface{}:
+			errData := &strings.Builder{}
+			for k, v := range e {
+				if _, err := fmt.Fprintf(errData, "%s=%#v ", k, v); err != nil {
+					return err
+				}
 			}
+			return fmt.Errorf("megaport-api: %s (%s)", r.Message, strings.TrimSpace(errData.String()))
+		default:
+			return fmt.Errorf("megaport-api: %s (cannot process data of type %T: %#v", r.Message, e, e)
 		}
-		return fmt.Errorf("megaport-api: %s (%s)", r.Message, strings.TrimSpace(errData.String()))
 	}
 	r.Data = data
 	return parseResponseBody(resp, &r)

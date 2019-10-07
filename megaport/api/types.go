@@ -66,6 +66,7 @@ type Megaport struct {
 	ProductUid    string
 	Rank          uint64
 	Speed         uint64
+	Title         string
 	VxcPermitted  bool
 }
 
