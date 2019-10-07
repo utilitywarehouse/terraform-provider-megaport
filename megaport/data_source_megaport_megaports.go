@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceMegaports() *schema.Resource {
+func dataSourceMegaportMegaports() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMegaportsRead,
+		Read: dataSourceMegaportMegaportsRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -21,7 +21,7 @@ func dataSourceMegaports() *schema.Resource {
 	}
 }
 
-func dataSourceMegaportsRead(d *schema.ResourceData, m interface{}) error {
+func dataSourceMegaportMegaportsRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	d.SetId(time.Now().UTC().String())
 	loc, err := cfg.Client.GetMegaports()

@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceInternetExchanges() *schema.Resource {
+func dataSourceMegaportInternetExchanges() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceInternetExchangesRead,
+		Read: dataSourceMegaportInternetExchangesRead,
 
 		Schema: map[string]*schema.Schema{
 			"location_id": {
@@ -25,7 +25,7 @@ func dataSourceInternetExchanges() *schema.Resource {
 	}
 }
 
-func dataSourceInternetExchangesRead(d *schema.ResourceData, m interface{}) error {
+func dataSourceMegaportInternetExchangesRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	d.SetId(time.Now().UTC().String())
 	loc, err := cfg.Client.GetInternetExchanges(uint64(d.Get("location_id").(int)))
