@@ -79,12 +79,12 @@ func (c *Client) GetLocations() ([]*Location, error) {
 	return data, nil
 }
 
-func (c *Client) GetMegaports() ([]Megaport, error) {
+func (c *Client) GetMegaports() ([]*Megaport, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/dropdowns/partner/megaports", c.BaseURL), nil)
 	if err != nil {
 		return nil, err
 	}
-	data := []Megaport{}
+	data := []*Megaport{}
 	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}
