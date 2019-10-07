@@ -84,11 +84,10 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	var a, b map[string]interface{}
-	//if t := d.Get("a_end"); t != nil {
-	//a = t.(*schema.Set).List()[0].(*schema.ResourceData)
-	//}
-	if t := d.Get("b_end").(*schema.Set).List(); t != nil {
-		//b = (t.(*schema.Set)).List()[0].(map[string]interface)
+	if t := d.Get("a_end").(*schema.Set).List(); t != nil && len(t) == 1 {
+		a = t[0].(map[string]interface{})
+	}
+	if t := d.Get("b_end").(*schema.Set).List(); t != nil && len(t) == 1 {
 		b = t[0].(map[string]interface{})
 	}
 	var vlanA uint64
