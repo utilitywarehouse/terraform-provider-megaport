@@ -18,29 +18,27 @@ const (
 // mcr1: virtual = true , type = MEGAPORT
 // mcr2: virtual = false, type = MCR2
 
-type PortsService struct {
+type PortService struct {
 	c *Client
 }
 
-func NewPortsService(c *Client) *PortsService {
-	return &PortsService{c}
+func NewPortService(c *Client) *PortService {
+	return &PortService{c}
 }
 
-func (p *PortsService) Create(name string, locationId, speed, term uint64, validate bool) (string, error) {
-	payload, err := json.Marshal([]portOrder{
-		portOrder{
-			// CreateDate   uint64          // TODO: need to fill in? :o
-			//LagPortCount uint64          // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
-			LocationId: locationId,
-			// LocationUid  string // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
-			// Market : l.Market,
-			PortSpeed:   speed,
-			ProductName: name,
-			ProductType: ProductTypePort,
-			Term:        term,
-			Virtual:     false,
-		},
-	})
+func (p *PortService) Create(name string, locationId, speed, term uint64, validate bool) (string, error) {
+	payload, err := json.Marshal([]portOrder{portOrder{
+		// CreateDate   uint64          // TODO: need to fill in? :o
+		//LagPortCount uint64          // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
+		LocationId: locationId,
+		// LocationUid  string // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
+		// Market : l.Market,
+		PortSpeed:   speed,
+		ProductName: name,
+		ProductType: ProductTypePort,
+		Term:        term,
+		Virtual:     false,
+	}})
 	if err != nil {
 		return "", err
 	}
@@ -66,7 +64,7 @@ func (p *PortsService) Create(name string, locationId, speed, term uint64, valid
 	return d[0]["technicalServiceUid"].(string), nil
 }
 
-func (p *PortsService) Get(uid string) (*Product, error) {
+func (p *PortService) Get(uid string) (*Product, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", p.c.BaseURL, uid), nil)
 	if err != nil {
 		return nil, err
@@ -78,8 +76,20 @@ func (p *PortsService) Get(uid string) (*Product, error) {
 	return data, nil
 }
 
-func (p *PortsService) Update() {}
-func (p *PortsService) Delete() {}
+func (p *PortService) Update() error {
+	return nil
+}
+
+func (p *PortService) Delete(uid string) error {
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", p.c.BaseURL, uid), nil)
+	if err != nil {
+		return err
+	}
+	if err := p.c.do(req, nil); err != nil {
+		return err
+	}
+	return nil
+}
 
 type portOrder struct {
 	CreateDate   uint64 `json:"createDate,omitempty"`   // TODO: need to fill in? :o

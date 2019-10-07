@@ -19,18 +19,22 @@ const (
 	UserAgent = "megaport-api-go-client/" + Version
 )
 
+var (
+	ErrNotFound = fmt.Errorf("megaport-api: not found")
+)
+
 type Client struct {
 	c         *http.Client
 	BaseURL   string
 	Token     string
 	UserAgent string
 
-	Ports *PortsService
+	Port *PortService
 }
 
 func NewClient(baseURL string) *Client {
 	c := &Client{c: &http.Client{}, BaseURL: baseURL}
-	c.Ports = NewPortsService(c)
+	c.Port = NewPortService(c)
 	return c
 }
 
@@ -171,6 +175,9 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 		return err
 	}
 	r := megaportResponse{}
+	if resp.StatusCode == http.StatusNotFound {
+		return ErrNotFound
+	}
 	if resp.StatusCode != http.StatusOK {
 		r.Data = map[string]interface{}{}
 		if err = parseResponseBody(resp, &r); err != nil {

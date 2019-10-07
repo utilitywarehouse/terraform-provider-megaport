@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportPort() *schema.Resource {
@@ -121,10 +122,11 @@ func resourceMegaportPort() *schema.Resource {
 
 func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	log.Printf("!!! READ")
-	p, err := cfg.Client.Ports.Get(d.Id())
+	p, err := cfg.Client.Port.Get(d.Id())
 	if err != nil {
-		return err
+		log.Printf("resourceMegaportPortRead: %v", err)
+		d.SetId("")
+		return nil
 	}
 	d.Set("location_id", p.LocationId)
 	d.Set("name", p.ProductName)
@@ -153,7 +155,7 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	log.Printf("!!! CREATE")
-	uid, err := cfg.Client.Ports.Create(d.Get("name").(string),
+	uid, err := cfg.Client.Port.Create(d.Get("name").(string),
 		uint64(d.Get("location_id").(int)), uint64(d.Get("speed").(int)),
 		uint64(d.Get("term").(int)), true)
 	if err != nil {
@@ -170,6 +172,12 @@ func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
 
 func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 	log.Printf("!!! DELETE")
+	cfg := m.(*Config)
+	err := cfg.Client.Port.Delete(d.Id())
+	if err != api.ErrNotFound {
+		return err
+	}
+	log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
 	return nil
 }
 
