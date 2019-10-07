@@ -14,6 +14,9 @@ import (
 const (
 	EndpointProduction = "https://api.megaport.com"
 	EndpointStaging    = "https://api-staging.megaport.com"
+
+	Version   = "0.1"
+	UserAgent = "megaport-api-go-client/" + Version
 )
 
 type Client struct {
@@ -159,6 +162,7 @@ func (c *Client) getCharges(product string, v url.Values) (*Charges, error) {
 func (c *Client) do(req *http.Request, data interface{}) error {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", c.UserAgent)
 	if c.Token != "" {
 		req.Header.Set("X-Auth-Token", c.Token)
 	}
@@ -197,4 +201,11 @@ func parseResponseBody(resp *http.Response, data interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (c *Client) userAgent() string {
+	if c.UserAgent == "" {
+		return UserAgent
+	}
+	return UserAgent + " " + c.UserAgent
 }
