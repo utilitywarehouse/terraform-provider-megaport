@@ -18,7 +18,7 @@ const (
 
 type Client struct {
 	c         *http.Client
-	baseURL   string // TODO: export this
+	BaseURL   string
 	Token     string
 	UserAgent string
 
@@ -26,7 +26,7 @@ type Client struct {
 }
 
 func NewClient(baseURL string) *Client {
-	c := &Client{c: &http.Client{}, baseURL: baseURL}
+	c := &Client{c: &http.Client{}, BaseURL: baseURL}
 	c.Ports = NewPortsService(c)
 	return c
 }
@@ -38,7 +38,7 @@ func (c *Client) Login(username, password, otp string) error {
 	if otp != "" {
 		v.Set("oneTimePassword", otp)
 	}
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/login?%s", c.baseURL, v.Encode()), nil)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/login?%s", c.BaseURL, v.Encode()), nil)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (c *Client) Login(username, password, otp string) error {
 }
 
 func (c *Client) Logout() error {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/logout", c.baseURL), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/logout", c.BaseURL), nil)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (c *Client) Logout() error {
 }
 
 func (c *Client) GetLocations() ([]*Location, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/locations", c.baseURL), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/locations", c.BaseURL), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (c *Client) GetLocations() ([]*Location, error) {
 }
 
 func (c *Client) GetMegaports() ([]Megaport, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/dropdowns/partner/megaports", c.baseURL), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/dropdowns/partner/megaports", c.BaseURL), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (c *Client) GetMegaports() ([]Megaport, error) {
 func (c *Client) GetInternetExchanges(locationId uint64) ([]InternetExchange, error) {
 	v := url.Values{}
 	v.Set("locationId", strconv.FormatUint(locationId, 10))
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/ix/types?%s", c.baseURL, v.Encode()), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/ix/types?%s", c.BaseURL, v.Encode()), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (c *Client) GetIxPrice(ixType string, locationId, speed uint64) (*Charges, 
 }
 
 func (c *Client) getCharges(product string, v url.Values) (*Charges, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/pricebook/%s?%s", c.baseURL, product, v.Encode()), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/pricebook/%s?%s", c.BaseURL, product, v.Encode()), nil)
 	if err != nil {
 		return nil, err
 	}

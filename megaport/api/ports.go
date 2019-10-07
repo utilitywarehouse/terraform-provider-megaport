@@ -41,8 +41,8 @@ func (p *PortsService) Create(name string, locationId, speed, term uint64, valid
 		return "", err
 	}
 	b := bytes.NewReader(payload)
-	if validate {
-		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", p.c.baseURL), b)
+	if validate { // TODO: do we really want to make this conditional?
+		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", p.c.BaseURL), b)
 		if err != nil {
 			return "", err
 		}
@@ -51,7 +51,7 @@ func (p *PortsService) Create(name string, locationId, speed, term uint64, valid
 		}
 		b.Seek(0, 0) // TODO: ?
 	}
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", p.c.baseURL), b)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", p.c.BaseURL), b)
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +63,7 @@ func (p *PortsService) Create(name string, locationId, speed, term uint64, valid
 }
 
 func (p *PortsService) Get(uid string) (*Product, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", p.c.baseURL, uid), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", p.c.BaseURL, uid), nil)
 	if err != nil {
 		return nil, err
 	}
