@@ -163,12 +163,29 @@ func (pri *ProductResourcesInterface) UnmarshalJSON(b []byte) (err error) {
 }
 
 type ProductResourcesVirtualRouter struct {
-	Id           uint64
-	McrASN       uint64
+	Id           uint64  `json:"-"`
+	_id          float64 `json:"id"`
+	McrASN       uint64  `json:"-"`
+	_mcrASN      float64 `json:"mcrAsn"`
 	Name         string
-	ResourceName string `json:"resource_name"`
-	ResourceType string `json:"resource_type"`
-	Speed        uint64
+	ResourceName string  `json:"resource_name"`
+	ResourceType string  `json:"resource_type"`
+	Speed        uint64  `json:"-"`
+	_speed       float64 `json:"speed"`
+}
+
+type productResourcesVirtualRouter ProductResourcesVirtualRouter
+
+func (pri *ProductResourcesVirtualRouter) UnmarshalJSON(b []byte) (err error) {
+	v := productResourcesVirtualRouter{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	*pri = ProductResourcesVirtualRouter(v)
+	pri.Id = uint64(pri._id)
+	pri.McrASN = uint64(pri._mcrASN)
+	pri.Speed = uint64(pri._speed)
+	return nil
 }
 
 type ProductAssociatedVxc struct {

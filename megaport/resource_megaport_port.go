@@ -71,6 +71,7 @@ func resourceMegaportPort() *schema.Resource {
 }
 
 var (
+	// TODO: should these be functions?
 	vxcResource = &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {

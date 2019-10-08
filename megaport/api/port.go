@@ -91,6 +91,18 @@ func (p *PortService) Delete(uid string) error {
 	return nil
 }
 
+func (p *PortService) List() ([]*Product, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/products", p.c.BaseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	data := []*Product{}
+	if err := p.c.do(req, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
 type portOrder struct {
 	CreateDate   uint64 `json:"createDate,omitempty"`   // TODO: need to fill in? :o
 	LagPortCount uint64 `json:"lagPortCount,omitempty"` // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
