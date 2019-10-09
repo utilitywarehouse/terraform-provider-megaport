@@ -19,10 +19,6 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"uid": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -93,7 +89,6 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 		return nil
 	}
 	log.Printf("%#v", p)
-	d.Set("uid", p.ProductUid)
 	d.Set("name", p.ProductName)
 	d.Set("limit", p.RateLimit)
 	d.Set("a_end", schema.NewSet(schema.HashResource(vxcAEndResource), []interface{}{map[string]interface{}{
