@@ -3,7 +3,7 @@ package megaport
 import (
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
