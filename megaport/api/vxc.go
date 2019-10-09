@@ -57,18 +57,15 @@ func (p *VxcService) Create(productAUid, productBUid, name string, vlanA, vlanB,
 		return "", err
 	}
 	b := bytes.NewReader(payload)
-	validate := true // TODO: think
-	if validate {    // TODO: do we really want to make this conditional?
-		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", p.c.BaseURL), b)
-		if err != nil {
-			return "", err
-		}
-		if err := p.c.do(req, nil); err != nil {
-			return "", err
-		}
-		b.Seek(0, 0) // TODO: ?
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", p.c.BaseURL), b)
+	if err != nil {
+		return "", err
 	}
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", p.c.BaseURL), b)
+	if err := p.c.do(req, nil); err != nil {
+		return "", err
+	}
+	b.Seek(0, 0) // TODO: error handling ?
+	req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", p.c.BaseURL), b)
 	if err != nil {
 		return "", err
 	}

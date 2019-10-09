@@ -167,7 +167,7 @@ func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 	log.Printf("!!! CREATE")
 	uid, err := cfg.Client.Port.Create(d.Get("name").(string),
 		uint64(d.Get("location_id").(int)), uint64(d.Get("speed").(int)),
-		uint64(d.Get("term").(int)), true)
+		uint64(d.Get("term").(int)))
 	if err != nil {
 		return err
 	}
