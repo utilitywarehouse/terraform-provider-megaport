@@ -184,10 +184,12 @@ func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 	log.Printf("!!! DELETE")
 	cfg := m.(*Config)
 	err := cfg.Client.Port.Delete(d.Id())
-	if err != api.ErrNotFound {
+	if err != nil && err != api.ErrNotFound {
 		return err
 	}
-	log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
+	if err == api.ErrNotFound {
+		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
+	}
 	return nil
 }
 
