@@ -137,6 +137,15 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 }
 
 func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) error {
+	log.Printf("!!! DELETE")
+	cfg := m.(*Config)
+	err := cfg.Client.Vxc.Delete(d.Id())
+	if err != nil && err != api.ErrNotFound {
+		return err
+	}
+	if err == api.ErrNotFound {
+		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
+	}
 	return nil
 }
 

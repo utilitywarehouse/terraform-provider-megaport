@@ -87,3 +87,18 @@ func (p *VxcService) Get(uid string) (*ProductAssociatedVxc, error) {
 	}
 	return data, nil
 }
+
+func (p *VxcService) Update() error {
+	return nil
+}
+
+func (p *VxcService) Delete(uid string) error {
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", p.c.BaseURL, uid), nil)
+	if err != nil {
+		return err
+	}
+	if err := p.c.do(req, nil); err != nil {
+		return err
+	}
+	return nil
+}
