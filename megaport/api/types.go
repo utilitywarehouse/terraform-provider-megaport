@@ -129,6 +129,7 @@ type ProductResources struct { // TODO: verify these are the only valid fields
 	// CrossConnect  ProductResourcesCrossConnect `json:"cross_connect"` // TODO: only referenced in https://dev.megaport.com/#general-get-product-list
 	Interface     ProductResourcesInterface
 	VirtualRouter ProductResourcesVirtualRouter `json:"virtual_router"`
+	VLL           ProductResourcesVLL
 }
 
 type ProductResourcesInterface struct {
@@ -150,15 +151,15 @@ type ProductResourcesInterface struct {
 
 type productResourcesInterface ProductResourcesInterface
 
-func (pri *ProductResourcesInterface) UnmarshalJSON(b []byte) (err error) {
+func (pr *ProductResourcesInterface) UnmarshalJSON(b []byte) (err error) {
 	v := productResourcesInterface{}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
-	*pri = ProductResourcesInterface(v)
-	pri.Id = uint64(pri._id)
-	pri.PortSpeed = uint64(pri._portSpeed)
-	pri.Up = uint64(pri._up)
+	*pr = ProductResourcesInterface(v)
+	pr.Id = uint64(pr._id)
+	pr.PortSpeed = uint64(pr._portSpeed)
+	pr.Up = uint64(pr._up)
 	return nil
 }
 
@@ -176,15 +177,48 @@ type ProductResourcesVirtualRouter struct {
 
 type productResourcesVirtualRouter ProductResourcesVirtualRouter
 
-func (pri *ProductResourcesVirtualRouter) UnmarshalJSON(b []byte) (err error) {
+func (pr *productResourcesVirtualRouter) UnmarshalJSON(b []byte) (err error) {
 	v := productResourcesVirtualRouter{}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
-	*pri = ProductResourcesVirtualRouter(v)
-	pri.Id = uint64(pri._id)
-	pri.McrASN = uint64(pri._mcrASN)
-	pri.Speed = uint64(pri._speed)
+	*pr = productResourcesVirtualRouter(v)
+	pr.Id = uint64(pr._id)
+	pr.McrASN = uint64(pr._mcrASN)
+	pr.Speed = uint64(pr._speed)
+	return nil
+}
+
+type ProductResourcesVLL struct {
+	AVLan        uint64  `json:"-"`
+	_aVLan       float64 `json:"a_vlan"`
+	BVLan        uint64  `json:"-"`
+	_bVLan       float64 `json:"b_vlan"`
+	Description  string
+	Id           uint64  `json:"-"`
+	_id          float64 `json:"id"`
+	Name         string
+	RateLimit    uint64  `json:"-"`
+	_rateLimit   float64 `json:"rate_limit_mbps"`
+	ResourceName string  `json:"resource_name"`
+	ResourceType string  `json:"resource_type"`
+	Up           uint64  `json:"-"`
+	_up          float64 `json:"up"`
+}
+
+type productResourcesVLL ProductResourcesVLL
+
+func (pr *productResourcesVLL) UnmarshalJSON(b []byte) (err error) {
+	v := productResourcesVLL{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	*pr = productResourcesVLL(v)
+	pr.AVLan = uint64(pr._aVLan)
+	pr.BVLan = uint64(pr._bVLan)
+	pr.Id = uint64(pr._id)
+	pr.RateLimit = uint64(pr._rateLimit)
+	pr.Up = uint64(pr._up)
 	return nil
 }
 

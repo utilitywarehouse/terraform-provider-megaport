@@ -107,6 +107,10 @@ var (
 
 	vxcAEndResource = &schema.Resource{
 		Schema: map[string]*schema.Schema{
+			"product_uid": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"vlan": {
 				Type:     schema.TypeInt,
 				Optional: true,

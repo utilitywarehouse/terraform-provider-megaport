@@ -75,3 +75,15 @@ func (p *VxcService) Create(productAUid, productBUid, name string, vlanA, vlanB,
 	}
 	return d[0]["vxcJTechnicalServiceUid"].(string), nil
 }
+
+func (p *VxcService) Get(uid string) (*ProductAssociatedVxc, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", p.c.BaseURL, uid), nil)
+	if err != nil {
+		return nil, err
+	}
+	data := &ProductAssociatedVxc{}
+	if err := p.c.do(req, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}

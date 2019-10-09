@@ -1,7 +1,10 @@
 package megaport
 
 import (
+	"log"
+
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportPrivateVxc() *schema.Resource {
@@ -16,10 +19,9 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"product_uid": {
+			"uid": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -30,13 +32,17 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 				Required: true,
 			},
 			"a_end": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:     schema.TypeSet,
+				Required: true,
+				MaxItems: 1,
+				//ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"product_uid": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
 						"vlan": {
 							Type:     schema.TypeInt,
 							Optional: true,
@@ -51,15 +57,16 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 				},
 			},
 			"b_end": {
-				Type:       schema.TypeSet,
-				Required:   true,
-				MaxItems:   1,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:     schema.TypeSet,
+				Required: true,
+				MaxItems: 1,
+				//ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"product_uid": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"vlan": {
 							Type:     schema.TypeInt,
@@ -78,6 +85,26 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 }
 
 func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error {
+	cfg := m.(*Config)
+	p, err := cfg.Client.Vxc.Get(d.Id())
+	if err != nil {
+		log.Printf("resourceMegaportPrivateVxcRead: %v", err)
+		d.SetId("")
+		return nil
+	}
+	log.Printf("%#v", p)
+	d.Set("uid", p.ProductUid)
+	d.Set("name", p.ProductName)
+	d.Set("limit", p.RateLimit)
+	d.Set("a_end", schema.NewSet(schema.HashResource(vxcAEndResource), []interface{}{map[string]interface{}{
+		"product_uid": p.AEnd.ProductUid,
+		"vlan":        int(p.AEnd.Vlan),
+	}}))
+	d.Set("b_end", schema.NewSet(schema.HashResource(vxcBEndResource), []interface{}{map[string]interface{}{
+		"product_uid": p.BEnd.ProductUid,
+		"vlan":        int(p.BEnd.Vlan),
+	}}))
+	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil
 }
 
@@ -90,15 +117,11 @@ func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) err
 	if t := d.Get("b_end").(*schema.Set).List(); t != nil && len(t) == 1 {
 		b = t[0].(map[string]interface{})
 	}
-	var vlanA uint64
-	if a != nil {
-		vlanA = uint64(a["vlan"].(int))
-	}
 	uid, err := cfg.Client.Vxc.Create(
-		d.Get("product_uid").(string),
+		a["product_uid"].(string),
 		b["product_uid"].(string),
 		d.Get("name").(string),
-		vlanA,
+		uint64(a["vlan"].(int)),
 		uint64(b["vlan"].(int)),
 		uint64(d.Get("rate_limit").(int)),
 	)
