@@ -55,6 +55,10 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 		d.SetId("")
 		return nil
 	}
+	if p.ProvisioningStatus == api.ProductStatusDecommissioned {
+		d.SetId("")
+		return nil
+	}
 	d.Set("name", p.ProductName)
 	d.Set("rate_limit", p.RateLimit)
 	d.Set("a_end", flattenVxcEnd(p.AEnd))
