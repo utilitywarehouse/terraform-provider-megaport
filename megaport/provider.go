@@ -40,10 +40,9 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"megaport_location":           dataSourceMegaportLocation(),
-			"megaport_partner_port":       dataSourceMegaportPartnerPort(),
-			"megaport_port":               dataSourceMegaportPort(),
-			"megaport_internet_exchanges": dataSourceMegaportInternetExchanges(),
+			"megaport_location":     dataSourceMegaportLocation(),
+			"megaport_partner_port": dataSourceMegaportPartnerPort(),
+			"megaport_port":         dataSourceMegaportPort(),
 		},
 
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
