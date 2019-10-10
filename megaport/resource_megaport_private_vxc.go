@@ -7,23 +7,6 @@ import (
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
-var (
-	vxcEndResourceElem = &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"product_uid": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"vlan": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-			},
-		},
-	}
-)
-
 func resourceMegaportPrivateVxc() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMegaportPrivateVxcCreate,
@@ -48,13 +31,13 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem:     vxcEndResourceElem,
+				Elem:     resourceMegaportVxcEndElem(),
 			},
 			"b_end": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem:     vxcEndResourceElem,
+				Elem:     resourceMegaportVxcEndElem(),
 			},
 			"invoice_reference": {
 				Type:     schema.TypeString,
@@ -74,14 +57,8 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 	}
 	d.Set("name", p.ProductName)
 	d.Set("rate_limit", p.RateLimit)
-	d.Set("a_end", []interface{}{map[string]interface{}{
-		"product_uid": p.AEnd.ProductUid,
-		"vlan":        int(p.AEnd.Vlan),
-	}})
-	d.Set("b_end", []interface{}{map[string]interface{}{
-		"product_uid": p.BEnd.ProductUid,
-		"vlan":        int(p.BEnd.Vlan),
-	}})
+	d.Set("a_end", flattenVxcEnd(p.AEnd))
+	d.Set("b_end", flattenVxcEnd(p.BEnd))
 	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil
 }
@@ -123,4 +100,28 @@ func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) err
 
 func resourceMegaportPrivateVxcImportState(*schema.ResourceData, interface{}) ([]*schema.ResourceData, error) {
 	return nil, nil
+}
+
+func resourceMegaportVxcEndElem() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"product_uid": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"vlan": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func flattenVxcEnd(v api.ProductAssociatedVxcEnd) []interface{} {
+	return []interface{}{map[string]interface{}{
+		"product_uid": v.ProductUid,
+		"vlan":        int(v.Vlan),
+	}}
 }
