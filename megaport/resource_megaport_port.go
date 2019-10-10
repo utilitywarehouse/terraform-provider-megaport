@@ -81,16 +81,7 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", p.ProductName)
 	d.Set("speed", p.PortSpeed)
 	d.Set("term", p.ContractTermMonths)
-	vxcs := make([]interface{}, len(p.AssociatedVxcs))
-	for i, v := range p.AssociatedVxcs {
-		vxcs[i] = map[string]interface{}{
-			"name":       v.ProductName,
-			"rate_limit": int(v.RateLimit),
-			"a_end":      flattenVxcEnd(v.AEnd),
-			"b_end":      flattenVxcEnd(v.BEnd),
-		}
-	}
-	d.Set("associated_vxcs", schema.NewSet(schema.HashResource(resourceMegaportPrivateVxc()), vxcs))
+	d.Set("associated_vxcs", schema.NewSet(schema.HashResource(resourceMegaportPrivateVxc()), flattenVxcList(p.AssociatedVxcs)))
 	d.Set("marketplace_visibility", p.MarketplaceVisibility)
 	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil
@@ -130,4 +121,21 @@ func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportPortImportState(*schema.ResourceData, interface{}) ([]*schema.ResourceData, error) {
 	log.Printf("!!! IMPORT")
 	return nil, nil
+}
+
+func flattenVxc(v api.ProductAssociatedVxc) interface{} {
+	return map[string]interface{}{
+		"name":       v.ProductName,
+		"rate_limit": int(v.RateLimit),
+		"a_end":      flattenVxcEnd(v.AEnd),
+		"b_end":      flattenVxcEnd(v.BEnd),
+	}
+}
+
+func flattenVxcList(vs []api.ProductAssociatedVxc) []interface{} {
+	ret := make([]interface{}, len(vs))
+	for i, v := range vs {
+		ret[i] = flattenVxc(v)
+	}
+	return ret
 }
