@@ -7,6 +7,23 @@ import (
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
+var (
+	vxcEndResourceElem = &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"product_uid": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"vlan": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+		},
+	}
+)
+
 func resourceMegaportPrivateVxc() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMegaportPrivateVxcCreate,
@@ -28,49 +45,16 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 				Required: true,
 			},
 			"a_end": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				//ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"product_uid": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-						"vlan": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-						"untag": { // TODO: what's the key for the API request?
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
+				Elem:     vxcEndResourceElem,
 			},
 			"b_end": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				//ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"product_uid": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-						"vlan": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
+				Elem:     vxcEndResourceElem,
 			},
 			"invoice_reference": {
 				Type:     schema.TypeString,
@@ -88,30 +72,24 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 		d.SetId("")
 		return nil
 	}
-	log.Printf("%#v", p)
 	d.Set("name", p.ProductName)
-	d.Set("limit", p.RateLimit)
-	d.Set("a_end", schema.NewSet(schema.HashResource(vxcAEndResource), []interface{}{map[string]interface{}{
+	d.Set("rate_limit", p.RateLimit)
+	d.Set("a_end", []interface{}{map[string]interface{}{
 		"product_uid": p.AEnd.ProductUid,
 		"vlan":        int(p.AEnd.Vlan),
-	}}))
-	d.Set("b_end", schema.NewSet(schema.HashResource(vxcBEndResource), []interface{}{map[string]interface{}{
+	}})
+	d.Set("b_end", []interface{}{map[string]interface{}{
 		"product_uid": p.BEnd.ProductUid,
 		"vlan":        int(p.BEnd.Vlan),
-	}}))
+	}})
 	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil
 }
 
 func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	var a, b map[string]interface{}
-	if t := d.Get("a_end").(*schema.Set).List(); t != nil && len(t) == 1 {
-		a = t[0].(map[string]interface{})
-	}
-	if t := d.Get("b_end").(*schema.Set).List(); t != nil && len(t) == 1 {
-		b = t[0].(map[string]interface{})
-	}
+	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
+	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
 	uid, err := cfg.Client.Vxc.Create(
 		a["product_uid"].(string),
 		b["product_uid"].(string),
@@ -124,7 +102,7 @@ func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) err
 		return err
 	}
 	d.SetId(uid)
-	return nil
+	return resourceMegaportPrivateVxcRead(d, m)
 }
 
 func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) error {
@@ -132,7 +110,6 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 }
 
 func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) error {
-	log.Printf("!!! DELETE")
 	cfg := m.(*Config)
 	err := cfg.Client.Vxc.Delete(d.Id())
 	if err != nil && err != api.ErrNotFound {
