@@ -16,6 +16,7 @@ type vxcOrder struct {
 type vxcOrderAssociatedVxcs struct {
 	ProductName string       `json:"productName"`
 	RateLimit   uint64       `json:"rateLimit"`
+	CostCentre  string       `json:"costCentre"`
 	AEnd        *vxcOrderEnd `json:"aEnd,omitempty"`
 	BEnd        *vxcOrderEnd `json:"bEnd"`
 }
@@ -33,12 +34,13 @@ func NewVxcService(c *Client) *VxcService {
 	return &VxcService{c}
 }
 
-func (p *VxcService) Create(productAUid, productBUid, name string, vlanA, vlanB, rateLimit uint64) (string, error) {
+func (p *VxcService) Create(productAUid, productBUid, name, invoiceReference string, vlanA, vlanB, rateLimit uint64) (string, error) {
 	order := []vxcOrder{vxcOrder{
 		ProductUid: productAUid,
 		AssociatedVxcs: []vxcOrderAssociatedVxcs{
 			vxcOrderAssociatedVxcs{
 				ProductName: name,
+				CostCentre:  invoiceReference,
 				RateLimit:   rateLimit,
 				BEnd: &vxcOrderEnd{
 					ProductUid: productBUid,

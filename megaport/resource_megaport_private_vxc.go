@@ -59,7 +59,7 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 	d.Set("rate_limit", p.RateLimit)
 	d.Set("a_end", flattenVxcEnd(p.AEnd))
 	d.Set("b_end", flattenVxcEnd(p.BEnd))
-	//d.Set("invoice_reference", p.) // TODO: is this even exported?
+	d.Set("invoice_reference", p.CostCentre)
 	return nil
 }
 
@@ -71,6 +71,7 @@ func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) err
 		a["product_uid"].(string),
 		b["product_uid"].(string),
 		d.Get("name").(string),
+		d.Get("invoice_reference").(string),
 		uint64(a["vlan"].(int)),
 		uint64(b["vlan"].(int)),
 		uint64(d.Get("rate_limit").(int)),
