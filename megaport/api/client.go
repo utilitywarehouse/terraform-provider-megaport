@@ -176,31 +176,40 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	r := megaportResponse{}
 	if resp.StatusCode == http.StatusNotFound {
 		return ErrNotFound
 	}
 	if resp.StatusCode != http.StatusOK {
-		if err = parseResponseBody(resp, &r); err != nil {
+		r := megaportResponse{}
+		if err := parseResponseBody(resp, &r); err != nil {
 			return err
 		}
-		switch e := r.Data.(type) {
-		case string:
-			return fmt.Errorf("megaport-api: %s (%s)", r.Message, e)
-		case map[string]interface{}:
-			errData := &strings.Builder{}
-			for k, v := range e {
-				if _, err := fmt.Fprintf(errData, "%s=%#v ", k, v); err != nil {
-					return err
-				}
-			}
-			return fmt.Errorf("megaport-api: %s (%s)", r.Message, strings.TrimSpace(errData.String()))
-		default:
-			return fmt.Errorf("megaport-api: %s (cannot process data of type %T: %#v", r.Message, e, e)
-		}
+		return fmt.Errorf("megaport-api: %s: %w", r.Message, responseDataToError(r.Data))
 	}
-	r.Data = data
-	return parseResponseBody(resp, &r)
+	return parseResponseBody(resp, &megaportResponse{Data: data})
+}
+
+func responseDataToError(d interface{}) error {
+	switch e := d.(type) {
+	case string:
+		return fmt.Errorf("%s", e)
+	case map[string]interface{}:
+		errData := &strings.Builder{}
+		for k, v := range e {
+			if _, err := fmt.Fprintf(errData, "%s=%#v ", k, v); err != nil {
+				return err
+			}
+		}
+		return fmt.Errorf("%s", strings.TrimSpace(errData.String()))
+	case []interface{}:
+		errors := make([]string, len(e))
+		for i, v := range e {
+			errors[i] = responseDataToError(v).Error()
+		}
+		return fmt.Errorf("%d errors: ['%s']", len(e), strings.Join(errors, "', '"))
+	default:
+		return fmt.Errorf("cannot process error data of type %T: %#v", e, e)
+	}
 }
 
 func parseResponseBody(resp *http.Response, data interface{}) error {
