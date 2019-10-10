@@ -45,7 +45,7 @@ func main() {
 	fmt.Printf("otp (leave empty if disabled): ")
 	scanner.Scan()
 	otp = scanner.Text()
-	c := api.NewClient(api.EndpointProduction)
+	c := api.NewClient(api.EndpointStaging)
 	if err := c.Login(username, password, otp); err != nil {
 		log.Fatal(err)
 	}
