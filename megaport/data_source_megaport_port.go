@@ -25,11 +25,6 @@ func dataSourceMegaportPort() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
 			},
-			// computed attributes
-			"uid": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -69,7 +64,6 @@ func dataSourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	if len(filtered) > 1 {
 		return fmt.Errorf("Multiple ports were found. Please use a more specific query.")
 	}
-	d.SetId(newUUID(filtered[0].ProductUid)) // TODO: simply use the uuid?
-	d.Set("uid", filtered[0].ProductUid)
+	d.SetId(filtered[0].ProductUid)
 	return nil
 }

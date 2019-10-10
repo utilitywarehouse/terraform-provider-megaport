@@ -26,11 +26,6 @@ func dataSourceMegaportLocation() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
 			},
-			// computed attributes
-			"location_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -70,7 +65,6 @@ func dataSourceMegaportLocationRead(d *schema.ResourceData, m interface{}) error
 	if len(filtered) > 1 {
 		return fmt.Errorf("Multiple locations were found. Please use a more specific query.")
 	}
-	d.SetId(newUUID(strconv.FormatUint(filtered[0].Id, 10)))
-	d.Set("location_id", filtered[0].Id)
+	d.SetId(strconv.FormatUint(filtered[0].Id, 10))
 	return nil
 }
