@@ -186,7 +186,12 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 		if err := parseResponseBody(resp, &r); err != nil {
 			return err
 		}
-		return fmt.Errorf("megaport-api: %s: %w", r.Message, responseDataToError(r.Data))
+		err := responseDataToError(r.Data)
+		if err != nil {
+			return fmt.Errorf("megaport-api: %s: %w", r.Message, err)
+		} else {
+			return fmt.Errorf("megaport-api: %s", r.Message)
+		}
 	}
 	return parseResponseBody(resp, &megaportResponse{Data: data})
 }
@@ -209,6 +214,8 @@ func responseDataToError(d interface{}) error {
 			errors[i] = responseDataToError(v).Error()
 		}
 		return fmt.Errorf("%d errors: ['%s']", len(e), strings.Join(errors, "', '"))
+	case nil:
+		return nil
 	default:
 		return fmt.Errorf("cannot process error data of type %T: %#v", e, e)
 	}
