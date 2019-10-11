@@ -88,7 +88,27 @@ func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) err
 }
 
 func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) error {
-	return nil
+	cfg := m.(*Config)
+	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
+	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
+	var vlanB uint64
+	if d.HasChange("b_end.0.vlan") {
+		vlanB = uint64(b["vlan"].(int))
+	}
+	//if
+	log.Printf(">>1 %#v", a)
+	log.Printf(">>2 %#v", a["vlan"])
+	if err := cfg.Client.Vxc.Update(
+		d.Id(),
+		d.Get("name").(string),
+		d.Get("invoice_reference").(string),
+		uint64(a["vlan"].(int)),
+		vlanB,
+		uint64(d.Get("rate_limit").(int)),
+	); err != nil {
+		return err
+	}
+	return resourceMegaportPrivateVxcRead(d, m)
 }
 
 func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) error {

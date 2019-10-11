@@ -26,6 +26,14 @@ type vxcOrderEnd struct {
 	VLan       uint64 `json:"vlan,omitempty"`
 }
 
+type vxcOrderUpdate struct {
+	AEndVlan   uint64 `json:"aEndVlan"`
+	BEndVlan   uint64 `json:"bEndVlan,omitempty"`
+	CostCentre string `json:"costCentre"`
+	Name       string `json:"name"`
+	RateLimit  uint64 `json:"rateLimit"`
+}
+
 type VxcService struct {
 	c *Client
 }
@@ -90,7 +98,26 @@ func (p *VxcService) Get(uid string) (*ProductAssociatedVxc, error) {
 	return data, nil
 }
 
-func (p *VxcService) Update() error {
+func (p *VxcService) Update(productUid, name, invoiceReference string, vlanA, vlanB, rateLimit uint64) error {
+	order := vxcOrderUpdate{
+		AEndVlan:   vlanA,
+		BEndVlan:   vlanB,
+		CostCentre: invoiceReference,
+		Name:       name,
+		RateLimit:  rateLimit,
+	}
+	payload, err := json.Marshal(order)
+	if err != nil {
+		return err
+	}
+	b := bytes.NewReader(payload)
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", p.c.BaseURL, productUid), b)
+	if err != nil {
+		return err
+	}
+	if err := p.c.do(req, nil); err != nil {
+		return err
+	}
 	return nil
 }
 
