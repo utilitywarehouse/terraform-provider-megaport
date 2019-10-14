@@ -25,6 +25,22 @@ func dataSourceMegaportPartnerPort() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
 			},
+			"connect_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+			},
+			"location_id": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+			},
+			"vxc_permitted": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -49,11 +65,38 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 	if err := dataSourceUpdatePartnerPorts(cfg.Client); err != nil {
 		return err
 	}
-	var filtered []*api.Megaport
+	unfiltered := megaportPartnerPorts
+	filtered := []*api.Megaport{}
+	vp := d.Get("vxc_permitted")
+	for _, port := range unfiltered {
+		if port.VxcPermitted == vp.(bool) {
+			filtered = append(filtered, port)
+		}
+	}
 	if nameRegex, ok := d.GetOk("name_regex"); ok {
+		unfiltered = filtered
+		filtered = []*api.Megaport{}
 		nr := regexp.MustCompile(nameRegex.(string))
-		for _, port := range megaportPartnerPorts {
+		for _, port := range unfiltered {
 			if nr.MatchString(port.Title) {
+				filtered = append(filtered, port)
+			}
+		}
+	}
+	if ct, ok := d.GetOk("connect_type"); ok {
+		unfiltered = filtered
+		filtered = []*api.Megaport{}
+		for _, port := range unfiltered {
+			if port.ConnectType == ct.(string) {
+				filtered = append(filtered, port)
+			}
+		}
+	}
+	if lid, ok := d.GetOk("location_id"); ok {
+		unfiltered = filtered
+		filtered = []*api.Megaport{}
+		for _, port := range unfiltered {
+			if port.LocationId == uint64(lid.(int)) {
 				filtered = append(filtered, port)
 			}
 		}
