@@ -62,9 +62,36 @@ type vxcCreatePayloadAssociatedVxcEnd struct {
 	Vlan       uint64 `json:"vlan"`
 }
 
-func (p *VxcService) Create(v VxcCreateInput) (*VxcCreateOutput, error) {
-	order := v.toPayload()
-	payload, err := json.Marshal(order)
+type VxcUpdateInput struct {
+	InvoiceReference string
+	Name             string
+	ProductUid       string
+	RateLimit        uint64
+	VlanA            uint64
+	VlanB            uint64
+}
+
+func (v *VxcUpdateInput) toPayload() *vxcUpdatePayload {
+	ret := &vxcUpdatePayload{
+		AEndVlan:   v.VlanA,
+		BEndVlan:   v.VlanB,
+		CostCentre: v.InvoiceReference,
+		Name:       v.Name,
+		RateLimit:  v.RateLimit,
+	}
+	return ret
+}
+
+type vxcUpdatePayload struct {
+	AEndVlan   uint64 `json:"aEndVlan"`
+	BEndVlan   uint64 `json:"bEndVlan,omitempty"`
+	CostCentre string `json:"costCentre"`
+	Name       string `json:"name"`
+	RateLimit  uint64 `json:"rateLimit"`
+}
+
+func (p *VxcService) Create(v *VxcCreateInput) (*VxcCreateOutput, error) {
+	payload, err := json.Marshal(v.toPayload())
 	if err != nil {
 		return nil, err
 	}
@@ -100,20 +127,13 @@ func (p *VxcService) Get(uid string) (*ProductAssociatedVxc, error) {
 	return data, nil
 }
 
-func (p *VxcService) Update(productUid, name, invoiceReference string, vlanA, vlanB, rateLimit uint64) error {
-	order := vxcOrderUpdate{
-		AEndVlan:   vlanA,
-		BEndVlan:   vlanB,
-		CostCentre: invoiceReference,
-		Name:       name,
-		RateLimit:  rateLimit,
-	}
-	payload, err := json.Marshal(order)
+func (p *VxcService) Update(v *VxcUpdateInput) error {
+	payload, err := json.Marshal(v.toPayload())
 	if err != nil {
 		return err
 	}
 	b := bytes.NewReader(payload)
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", p.c.BaseURL, productUid), b)
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", p.c.BaseURL, v.ProductUid), b)
 	if err != nil {
 		return err
 	}
