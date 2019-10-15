@@ -26,8 +26,8 @@ type VxcCreateInput struct {
 	VlanB            uint64
 }
 
-func (v *VxcCreateInput) toPayload() []*vxcCreatePayload {
-	ret := &vxcCreatePayload{
+func (v *VxcCreateInput) toPayload() ([]byte, error) {
+	payload := []*vxcCreatePayload{{
 		ProductUid: v.ProductUidA,
 		AssociatedVxcs: []vxcCreatePayloadAssociatedVxc{{
 			ProductName: v.Name,
@@ -36,8 +36,8 @@ func (v *VxcCreateInput) toPayload() []*vxcCreatePayload {
 			AEnd:        &vxcCreatePayloadAssociatedVxcEnd{Vlan: v.VlanA},
 			BEnd:        &vxcCreatePayloadAssociatedVxcEnd{ProductUid: v.ProductUidB, Vlan: v.VlanB},
 		}},
-	}
-	return []*vxcCreatePayload{ret}
+	}}
+	return json.Marshal(payload)
 }
 
 type VxcCreateOutput struct {
@@ -71,15 +71,15 @@ type VxcUpdateInput struct {
 	VlanB            uint64
 }
 
-func (v *VxcUpdateInput) toPayload() *vxcUpdatePayload {
-	ret := &vxcUpdatePayload{
+func (v *VxcUpdateInput) toPayload() ([]byte, error) {
+	payload := &vxcUpdatePayload{
 		AEndVlan:   v.VlanA,
 		BEndVlan:   v.VlanB,
 		CostCentre: v.InvoiceReference,
 		Name:       v.Name,
 		RateLimit:  v.RateLimit,
 	}
-	return ret
+	return json.Marshal(payload)
 }
 
 type vxcUpdatePayload struct {
@@ -91,7 +91,7 @@ type vxcUpdatePayload struct {
 }
 
 func (p *VxcService) Create(v *VxcCreateInput) (*VxcCreateOutput, error) {
-	payload, err := json.Marshal(v.toPayload())
+	payload, err := v.toPayload()
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (p *VxcService) Get(uid string) (*ProductAssociatedVxc, error) {
 }
 
 func (p *VxcService) Update(v *VxcUpdateInput) error {
-	payload, err := json.Marshal(v.toPayload())
+	payload, err := v.toPayload()
 	if err != nil {
 		return err
 	}
