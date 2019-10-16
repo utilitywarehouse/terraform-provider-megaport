@@ -91,18 +91,23 @@ type vxcCreatePayload struct {
 }
 
 type vxcCreatePayloadAssociatedVxc struct {
-	ProductName string      `json:"productName"`
-	RateLimit   uint64      `json:"rateLimit"`
-	CostCentre  string      `json:"costCentre"`
-	AEnd        interface{} `json:"aEnd"`
-	BEnd        interface{} `json:"bEnd"`
+	ProductName string                   `json:"productName"`
+	RateLimit   uint64                   `json:"rateLimit"`
+	CostCentre  string                   `json:"costCentre,omitempty"`
+	AEnd        *vxcCreatePayloadVxcEndA `json:"aEnd,omitempty"`
+	BEnd        interface{}              `json:"bEnd"`
 }
 
-type vxcCreatePayloadPrivateVxcEnd struct {
+type vxcCreatePayloadVxcEndA struct {
 	Vlan uint64 `json:"vlan"`
 }
 
-type vxcCreatePayloadPartnerVxcEnd struct {
+type vxcCreatePayloadVxcEndBPrivate struct {
+	ProductUid string `json:"productUid"`
+	Vlan       uint64 `json:"vlan,omitempty"`
+}
+
+type vxcCreatePayloadVxcEndBPartner struct {
 	ProductUid string `json:"productUid"`
 }
 type PrivateVxcCreateInput struct {
@@ -122,10 +127,12 @@ func (v *PrivateVxcCreateInput) toPayload() ([]byte, error) {
 			ProductName: v.Name,
 			RateLimit:   v.RateLimit,
 			CostCentre:  v.InvoiceReference,
-			AEnd:        &vxcCreatePayloadPrivateVxcEnd{Vlan: v.VlanA},
-			BEnd:        &vxcCreatePayloadPrivateVxcEnd{ProductUid: v.ProductUidB, Vlan: v.VlanB},
+			BEnd:        &vxcCreatePayloadVxcEndBPrivate{ProductUid: v.ProductUidB, Vlan: v.VlanB},
 		}},
 	}}
+	if v.VlanA != 0 {
+		payload[0].AssociatedVxcs[0].AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
+	}
 	return json.Marshal(payload)
 }
 
