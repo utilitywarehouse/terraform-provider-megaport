@@ -16,81 +16,11 @@ func NewVxcService(c *Client) *VxcService {
 	return &VxcService{c}
 }
 
-type VxcCreateInput struct {
-	InvoiceReference string
-	Name             string
-	ProductUidA      string
-	ProductUidB      string
-	RateLimit        uint64
-	VlanA            uint64
-	VlanB            uint64
+type networkDesignInput interface {
+	toPayload() ([]byte, error)
 }
 
-func (v *VxcCreateInput) toPayload() ([]byte, error) {
-	payload := []*vxcCreatePayload{{
-		ProductUid: v.ProductUidA,
-		AssociatedVxcs: []vxcCreatePayloadAssociatedVxc{{
-			ProductName: v.Name,
-			RateLimit:   v.RateLimit,
-			CostCentre:  v.InvoiceReference,
-			AEnd:        &vxcCreatePayloadAssociatedVxcEnd{Vlan: v.VlanA},
-			BEnd:        &vxcCreatePayloadAssociatedVxcEnd{ProductUid: v.ProductUidB, Vlan: v.VlanB},
-		}},
-	}}
-	return json.Marshal(payload)
-}
-
-type VxcCreateOutput struct {
-	ProductUid string
-}
-
-type vxcCreatePayload struct {
-	ProductUid     string                          `json:"productUid"`
-	AssociatedVxcs []vxcCreatePayloadAssociatedVxc `json:"associatedVxcs"`
-}
-
-type vxcCreatePayloadAssociatedVxc struct {
-	ProductName string                            `json:"productName"`
-	RateLimit   uint64                            `json:"rateLimit"`
-	CostCentre  string                            `json:"costCentre"`
-	AEnd        *vxcCreatePayloadAssociatedVxcEnd `json:"aEnd"`
-	BEnd        *vxcCreatePayloadAssociatedVxcEnd `json:"bEnd"`
-}
-
-type vxcCreatePayloadAssociatedVxcEnd struct {
-	ProductUid string `json:"productUid,omitempty"`
-	Vlan       uint64 `json:"vlan"`
-}
-
-type VxcUpdateInput struct {
-	InvoiceReference string
-	Name             string
-	ProductUid       string
-	RateLimit        uint64
-	VlanA            uint64
-	VlanB            uint64
-}
-
-func (v *VxcUpdateInput) toPayload() ([]byte, error) {
-	payload := &vxcUpdatePayload{
-		AEndVlan:   v.VlanA,
-		BEndVlan:   v.VlanB,
-		CostCentre: v.InvoiceReference,
-		Name:       v.Name,
-		RateLimit:  v.RateLimit,
-	}
-	return json.Marshal(payload)
-}
-
-type vxcUpdatePayload struct {
-	AEndVlan   uint64 `json:"aEndVlan"`
-	BEndVlan   uint64 `json:"bEndVlan,omitempty"`
-	CostCentre string `json:"costCentre"`
-	Name       string `json:"name"`
-	RateLimit  uint64 `json:"rateLimit"`
-}
-
-func (p *VxcService) Create(v *VxcCreateInput) (*VxcCreateOutput, error) {
+func (p *VxcService) create(v networkDesignInput) (*string, error) {
 	payload, err := v.toPayload()
 	if err != nil {
 		return nil, err
@@ -112,10 +42,11 @@ func (p *VxcService) Create(v *VxcCreateInput) (*VxcCreateOutput, error) {
 	if err := p.c.do(req, &d); err != nil {
 		return nil, err
 	}
-	return &VxcCreateOutput{ProductUid: d[0]["vxcJTechnicalServiceUid"].(string)}, nil
+	uid := d[0]["vxcJTechnicalServiceUid"].(string)
+	return &uid, nil
 }
 
-func (p *VxcService) Get(uid string) (*ProductAssociatedVxc, error) {
+func (p *VxcService) get(uid string) (*ProductAssociatedVxc, error) { // TODO: change name
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", p.c.BaseURL, uid), nil)
 	if err != nil {
 		return nil, err
@@ -127,13 +58,13 @@ func (p *VxcService) Get(uid string) (*ProductAssociatedVxc, error) {
 	return data, nil
 }
 
-func (p *VxcService) Update(v *VxcUpdateInput) error {
+func (p *VxcService) update(uid string, v networkDesignInput) error {
 	payload, err := v.toPayload()
 	if err != nil {
 		return err
 	}
 	b := bytes.NewReader(payload)
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", p.c.BaseURL, v.ProductUid), b)
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", p.c.BaseURL, uid), b)
 	if err != nil {
 		return err
 	}
@@ -143,7 +74,7 @@ func (p *VxcService) Update(v *VxcUpdateInput) error {
 	return nil
 }
 
-func (p *VxcService) Delete(uid string) error {
+func (p *VxcService) delete(uid string) error {
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", p.c.BaseURL, uid), nil)
 	if err != nil {
 		return err
@@ -152,4 +83,90 @@ func (p *VxcService) Delete(uid string) error {
 		return err
 	}
 	return nil
+}
+
+type vxcCreatePayload struct {
+	ProductUid     string                           `json:"productUid"`
+	AssociatedVxcs []*vxcCreatePayloadAssociatedVxc `json:"associatedVxcs"`
+}
+
+type vxcCreatePayloadAssociatedVxc struct {
+	ProductName string                            `json:"productName"`
+	RateLimit   uint64                            `json:"rateLimit"`
+	CostCentre  string                            `json:"costCentre"`
+	AEnd        *vxcCreatePayloadAssociatedVxcEnd `json:"aEnd"`
+	BEnd        *vxcCreatePayloadAssociatedVxcEnd `json:"bEnd"`
+}
+
+type vxcCreatePayloadAssociatedVxcEnd struct {
+	ProductUid string `json:"productUid,omitempty"` // XXX extra
+	Vlan       uint64 `json:"vlan"`
+}
+
+type PrivateVxcCreateInput struct {
+	InvoiceReference string
+	Name             string
+	ProductUidA      string
+	ProductUidB      string
+	RateLimit        uint64
+	VlanA            uint64
+	VlanB            uint64
+}
+
+func (v *PrivateVxcCreateInput) toPayload() ([]byte, error) {
+	payload := []*vxcCreatePayload{{
+		ProductUid: v.ProductUidA,
+		AssociatedVxcs: []*vxcCreatePayloadAssociatedVxc{{
+			ProductName: v.Name,
+			RateLimit:   v.RateLimit,
+			CostCentre:  v.InvoiceReference,
+			AEnd:        &vxcCreatePayloadAssociatedVxcEnd{Vlan: v.VlanA},
+			BEnd:        &vxcCreatePayloadAssociatedVxcEnd{ProductUid: v.ProductUidB, Vlan: v.VlanB},
+		}},
+	}}
+	return json.Marshal(payload)
+}
+
+type PrivateVxcUpdateInput struct {
+	InvoiceReference string
+	Name             string
+	ProductUid       string
+	RateLimit        uint64
+	VlanA            uint64
+	VlanB            uint64
+}
+
+func (v *PrivateVxcUpdateInput) toPayload() ([]byte, error) {
+	payload := &vxcUpdatePayload{
+		AEndVlan:   v.VlanA,
+		BEndVlan:   v.VlanB,
+		CostCentre: v.InvoiceReference,
+		Name:       v.Name,
+		RateLimit:  v.RateLimit,
+	}
+	return json.Marshal(payload)
+}
+
+type vxcUpdatePayload struct {
+	AEndVlan   uint64 `json:"aEndVlan"`
+	BEndVlan   uint64 `json:"bEndVlan,omitempty"`
+	CostCentre string `json:"costCentre"`
+	Name       string `json:"name"`
+	RateLimit  uint64 `json:"rateLimit"`
+}
+
+func (p *VxcService) CreatePrivateVxc(v *PrivateVxcCreateInput) (*string, error) {
+	return p.create(v)
+}
+
+func (p *VxcService) GetPrivateVxc(uid string) (*ProductAssociatedVxc, error) {
+	return p.get(uid)
+}
+
+func (p *VxcService) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
+	return p.update(v.ProductUid, v)
+}
+
+func (p *VxcService) DeletePrivateVxc(uid string) error {
+	return p.delete(uid)
 }
