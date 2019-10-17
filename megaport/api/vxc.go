@@ -86,63 +86,76 @@ func (p *VxcService) delete(uid string) error {
 }
 
 type vxcCreatePayload struct {
-	ProductUid     string                           `json:"productUid"`
-	AssociatedVxcs []*vxcCreatePayloadAssociatedVxc `json:"associatedVxcs"`
+	ProductUid     *string                          `json:"productUid,omitempty"`
+	AssociatedVxcs []*vxcCreatePayloadAssociatedVxc `json:"associatedVxcs,omitempty"`
 }
 
 type vxcCreatePayloadAssociatedVxc struct {
-	ProductName string                   `json:"productName"`
-	RateLimit   uint64                   `json:"rateLimit"`
-	CostCentre  string                   `json:"costCentre,omitempty"`
+	ProductName *string                  `json:"productName,omitempty"`
+	RateLimit   *uint64                  `json:"rateLimit,omitempty"`
+	CostCentre  *string                  `json:"costCentre,omitempty"`
 	AEnd        *vxcCreatePayloadVxcEndA `json:"aEnd,omitempty"`
-	BEnd        interface{}              `json:"bEnd"`
+	BEnd        interface{}              `json:"bEnd,omitempty"`
 }
 
 type vxcCreatePayloadVxcEndA struct {
-	Vlan uint64 `json:"vlan"`
+	Vlan *uint64 `json:"vlan,omitempty"`
 }
 
 type vxcCreatePayloadVxcEndBPrivate struct {
-	ProductUid string `json:"productUid"`
-	Vlan       uint64 `json:"vlan,omitempty"`
+	ProductUid *string `json:"productUid,omitempty"`
+	Vlan       *uint64 `json:"vlan,omitempty"`
 }
 
 type vxcCreatePayloadVxcEndBPartner struct {
-	ProductUid string `json:"productUid"`
+	ProductUid string `json:"productUid,omitempty"`
 }
+
 type PrivateVxcCreateInput struct {
-	InvoiceReference string
-	Name             string
-	ProductUidA      string
-	ProductUidB      string
-	RateLimit        uint64
-	VlanA            uint64
-	VlanB            uint64
+	InvoiceReference *string
+	Name             *string
+	ProductUidA      *string
+	ProductUidB      *string
+	RateLimit        *uint64
+	VlanA            *uint64
+	VlanB            *uint64
 }
 
 func (v *PrivateVxcCreateInput) toPayload() ([]byte, error) {
-	payload := []*vxcCreatePayload{{
-		ProductUid: v.ProductUidA,
-		AssociatedVxcs: []*vxcCreatePayloadAssociatedVxc{{
-			ProductName: v.Name,
-			RateLimit:   v.RateLimit,
-			CostCentre:  v.InvoiceReference,
-			BEnd:        &vxcCreatePayloadVxcEndBPrivate{ProductUid: v.ProductUidB, Vlan: v.VlanB},
-		}},
-	}}
-	if v.VlanA != 0 {
-		payload[0].AssociatedVxcs[0].AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
+	payload := []*vxcCreatePayload{{ProductUid: v.ProductUidA}}
+	av := &vxcCreatePayloadAssociatedVxc{
+		ProductName: v.Name,
+		RateLimit:   v.RateLimit,
+		CostCentre:  v.InvoiceReference,
+	}
+	if v.VlanA != nil {
+		av.AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
+	}
+	bEnd := &vxcCreatePayloadVxcEndBPrivate{ProductUid: v.ProductUidB, Vlan: v.VlanB}
+	if *bEnd != (vxcCreatePayloadVxcEndBPrivate{}) {
+		av.BEnd = bEnd
+	}
+	if *av != (vxcCreatePayloadAssociatedVxc{}) {
+		payload[0].AssociatedVxcs = []*vxcCreatePayloadAssociatedVxc{av}
 	}
 	return json.Marshal(payload)
 }
 
+type vxcUpdatePayload struct {
+	AEndVlan   *uint64 `json:"aEndVlan,omitempty"`
+	BEndVlan   *uint64 `json:"bEndVlan,omitempty"`
+	CostCentre *string `json:"costCentre,omitempty"`
+	Name       *string `json:"name,omitempty"`
+	RateLimit  *uint64 `json:"rateLimit,omitempty"`
+}
+
 type PrivateVxcUpdateInput struct {
-	InvoiceReference string
-	Name             string
-	ProductUid       string
-	RateLimit        uint64
-	VlanA            uint64
-	VlanB            uint64
+	InvoiceReference *string
+	Name             *string
+	ProductUid       *string
+	RateLimit        *uint64
+	VlanA            *uint64
+	VlanB            *uint64
 }
 
 func (v *PrivateVxcUpdateInput) toPayload() ([]byte, error) {
@@ -156,14 +169,6 @@ func (v *PrivateVxcUpdateInput) toPayload() ([]byte, error) {
 	return json.Marshal(payload)
 }
 
-type vxcUpdatePayload struct {
-	AEndVlan   uint64 `json:"aEndVlan"`
-	BEndVlan   uint64 `json:"bEndVlan,omitempty"`
-	CostCentre string `json:"costCentre"`
-	Name       string `json:"name"`
-	RateLimit  uint64 `json:"rateLimit"`
-}
-
 func (p *VxcService) CreatePrivateVxc(v *PrivateVxcCreateInput) (*string, error) {
 	return p.create(v)
 }
@@ -173,7 +178,7 @@ func (p *VxcService) GetPrivateVxc(uid string) (*ProductAssociatedVxc, error) {
 }
 
 func (p *VxcService) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
-	return p.update(v.ProductUid, v)
+	return p.update(*v.ProductUid, v)
 }
 
 func (p *VxcService) DeletePrivateVxc(uid string) error {
