@@ -49,7 +49,7 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 
 func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	p, err := cfg.Client.Vxc.Get(d.Id())
+	p, err := cfg.Client.Vxc.GetPrivateVxc(d.Id())
 	if err != nil {
 		log.Printf("resourceMegaportPrivateVxcRead: %v", err)
 		d.SetId("")
@@ -71,19 +71,19 @@ func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) err
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
-	o, err := cfg.Client.Vxc.Create(&api.VxcCreateInput{
-		ProductUidA:      a["product_uid"].(string),
-		ProductUidB:      b["product_uid"].(string),
-		Name:             d.Get("name").(string),
-		InvoiceReference: d.Get("invoice_reference").(string),
-		VlanA:            uint64(a["vlan"].(int)),
-		VlanB:            uint64(b["vlan"].(int)),
-		RateLimit:        uint64(d.Get("rate_limit").(int)),
+	uid, err := cfg.Client.Vxc.CreatePrivateVxc(&api.PrivateVxcCreateInput{
+		ProductUidA:      api.String(a["product_uid"]),
+		ProductUidB:      api.String(b["product_uid"]),
+		Name:             api.String(d.Get("name")),
+		InvoiceReference: api.String(d.Get("invoice_reference")),
+		VlanA:            api.Uint64FromInt(a["vlan"]),
+		VlanB:            api.Uint64FromInt(b["vlan"]),
+		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
 	})
 	if err != nil {
 		return err
 	}
-	d.SetId(o.ProductUid)
+	d.SetId(*uid)
 	return resourceMegaportPrivateVxcRead(d, m)
 }
 
@@ -98,13 +98,13 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 	//if
 	log.Printf(">>1 %#v", a)
 	log.Printf(">>2 %#v", a["vlan"])
-	if err := cfg.Client.Vxc.Update(&api.VxcUpdateInput{
-		InvoiceReference: d.Get("invoice_reference").(string),
-		Name:             d.Get("name").(string),
-		ProductUid:       d.Id(),
-		RateLimit:        uint64(d.Get("rate_limit").(int)),
-		VlanA:            uint64(a["vlan"].(int)),
-		VlanB:            vlanB,
+	if err := cfg.Client.Vxc.UpdatePrivateVxc(&api.PrivateVxcUpdateInput{
+		InvoiceReference: api.String(d.Get("invoice_reference")),
+		Name:             api.String(d.Get("name")),
+		ProductUid:       api.String(d.Id()),
+		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
+		VlanA:            api.Uint64FromInt(a["vlan"]),
+		VlanB:            api.Uint64FromInt(vlanB),
 	}); err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 
 func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	err := cfg.Client.Vxc.Delete(d.Id())
+	err := cfg.Client.Vxc.DeletePrivateVxc(d.Id())
 	if err != nil && err != api.ErrNotFound {
 		return err
 	}
