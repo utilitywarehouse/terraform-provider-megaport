@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -72,11 +74,66 @@ func TestClient_Logout(t *testing.T) {
 			t.Errorf("TestClient_Logout: unexpected 'token' value: got '%s', expected '%s'", ft, token)
 		}
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{}`)
+		fmt.Fprint(w, `{}`)
 	})
 	c.Token = token
 	defer s.Close()
 	if err := c.Logout(); err != nil {
 		t.Errorf("TestClient_Logout: %v", err)
+	}
+}
+
+func TestClient_responseDataToError(t *testing.T) {
+	testCases := []struct {
+		p string
+		e string
+	}{
+		{
+			p: `{"message":"foo"}`,
+			e: `megaport-api: foo`,
+		},
+		{
+			p: `{"message":"foo","data":"bar"}`,
+			e: `megaport-api: foo: bar`,
+		},
+		{
+			p: `{"message":"foo","data":["bar","baz"]}`,
+			e: `megaport-api: foo: 2 errors: ['bar', 'baz']`,
+		},
+		{
+			p: `{"message":"foo","data":{"a":"b","c":5}}`,
+			e: `megaport-api: foo: a="b" c=5`,
+		},
+		{
+			p: `{"message":"foo","data":true}`,
+			e: `megaport-api: foo: cannot process error data of type bool: true`,
+		},
+	}
+	c, s := testClientServer(func(w http.ResponseWriter, r *http.Request) {
+		tc, err := strconv.Atoi(strings.Trim(r.URL.Path, `/`))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, `{}`)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, testCases[tc].p)
+	})
+	req, err := http.NewRequest(http.MethodGet, s.URL, nil)
+	if err != nil {
+		t.Errorf("TestClient_responseDataToError: %v", err)
+	}
+	e := `megaport-api: not found`
+	if err := c.do(req, nil); err.Error() != e {
+		t.Errorf("TestClient_responseDataToError: unexpected error:\n\tgot     : %v\n\texpected: %s", err, e)
+	}
+	for i, tc := range testCases {
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%d", s.URL, i), nil)
+		if err != nil {
+			t.Errorf("TestClient_responseDataToError: %v", err)
+		}
+		if err := c.do(req, nil); err.Error() != tc.e {
+			t.Errorf("TestClient_responseDataToError: unexpected error in test case #%d:\n\tgot     : %v\n\texpected: %s", i, err, tc.e)
+		}
 	}
 }
