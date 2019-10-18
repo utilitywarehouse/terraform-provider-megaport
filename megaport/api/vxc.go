@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type networkDesignInput interface {
 	toPayload() ([]byte, error)
+	productType() string
 }
 
 func (c *Client) create(v networkDesignInput) (*string, error) {
@@ -57,7 +59,7 @@ func (c *Client) update(uid string, v networkDesignInput) error {
 		return err
 	}
 	b := bytes.NewReader(payload)
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", c.BaseURL, uid), b)
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/%s/%s", c.BaseURL, strings.ToLower(v.productType()), uid), b)
 	if err != nil {
 		return err
 	}
@@ -114,6 +116,10 @@ type PrivateVxcCreateInput struct {
 	VlanB            *uint64
 }
 
+func (v *PrivateVxcCreateInput) productType() string {
+	return ProductTypeVXC
+}
+
 func (v *PrivateVxcCreateInput) toPayload() ([]byte, error) {
 	payload := []*vxcCreatePayload{{ProductUid: v.ProductUidA}}
 	av := &vxcCreatePayloadAssociatedVxc{
@@ -149,6 +155,10 @@ type PrivateVxcUpdateInput struct {
 	RateLimit        *uint64
 	VlanA            *uint64
 	VlanB            *uint64
+}
+
+func (v *PrivateVxcUpdateInput) productType() string {
+	return ProductTypeVXC
 }
 
 func (v *PrivateVxcUpdateInput) toPayload() ([]byte, error) {

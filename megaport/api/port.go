@@ -12,6 +12,7 @@ const (
 	ProductTypePort = "MEGAPORT"
 	ProductTypeMCR1 = "MEGAPORT"
 	ProductTypeMCR2 = "MCR2"
+	ProductTypeVXC  = "VXC"
 )
 
 // port: virtual = false, type = MEGAPORT
