@@ -88,14 +88,14 @@ func (c *Client) GetMegaports() ([]*Megaport, error) {
 	return data, nil
 }
 
-func (c *Client) GetInternetExchanges(locationId uint64) ([]InternetExchange, error) {
+func (c *Client) GetInternetExchanges(locationId uint64) ([]*InternetExchange, error) {
 	v := url.Values{}
 	v.Set("locationId", strconv.FormatUint(locationId, 10))
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/ix/types?%s", c.BaseURL, v.Encode()), nil)
 	if err != nil {
 		return nil, err
 	}
-	data := []InternetExchange{}
+	data := []*InternetExchange{}
 	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}
