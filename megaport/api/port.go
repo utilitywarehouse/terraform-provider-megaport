@@ -36,15 +36,7 @@ type portOrderConfig struct {
 	McrASN uint64 `json:"mcrAsn,omitempty"`
 }
 
-type PortService struct {
-	c *Client
-}
-
-func NewPortService(c *Client) *PortService {
-	return &PortService{c}
-}
-
-func (p *PortService) Create(name string, locationId, speed, term uint64) (string, error) {
+func (c *Client) CreatePort(name string, locationId, speed, term uint64) (string, error) {
 	payload, err := json.Marshal([]portOrder{portOrder{
 		// CreateDate   uint64          // TODO: need to fill in? :o
 		//LagPortCount uint64          // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
@@ -61,59 +53,59 @@ func (p *PortService) Create(name string, locationId, speed, term uint64) (strin
 		return "", err
 	}
 	b := bytes.NewReader(payload)
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", p.c.BaseURL), b)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", c.BaseURL), b)
 	if err != nil {
 		return "", err
 	}
-	if err := p.c.do(req, nil); err != nil {
+	if err := c.do(req, nil); err != nil {
 		return "", err
 	}
 	b.Seek(0, 0) // TODO: error handling ?
-	req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", p.c.BaseURL), b)
+	req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", c.BaseURL), b)
 	if err != nil {
 		return "", err
 	}
 	d := []map[string]interface{}{}
-	if err := p.c.do(req, &d); err != nil {
+	if err := c.do(req, &d); err != nil {
 		return "", err
 	}
 	return d[0]["technicalServiceUid"].(string), nil
 }
 
-func (p *PortService) Get(uid string) (*Product, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", p.c.BaseURL, uid), nil)
+func (c *Client) GetPort(uid string) (*Product, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", c.BaseURL, uid), nil)
 	if err != nil {
 		return nil, err
 	}
 	data := &Product{}
-	if err := p.c.do(req, &data); err != nil {
+	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-func (p *PortService) Update() error {
+func (c *Client) UpdatePort() error {
 	return nil
 }
 
-func (p *PortService) Delete(uid string) error {
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", p.c.BaseURL, uid), nil)
+func (c *Client) DeletePort(uid string) error {
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", c.BaseURL, uid), nil)
 	if err != nil {
 		return err
 	}
-	if err := p.c.do(req, nil); err != nil {
+	if err := c.do(req, nil); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *PortService) List() ([]*Product, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/products", p.c.BaseURL), nil)
+func (c *Client) ListPorts() ([]*Product, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/products", c.BaseURL), nil)
 	if err != nil {
 		return nil, err
 	}
 	data := []*Product{}
-	if err := p.c.do(req, &data); err != nil {
+	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}
 	return data, nil

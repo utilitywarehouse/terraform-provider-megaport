@@ -71,7 +71,7 @@ func resourceMegaportPort() *schema.Resource {
 
 func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	p, err := cfg.Client.Port.Get(d.Id())
+	p, err := cfg.Client.GetPort(d.Id())
 	if err != nil {
 		log.Printf("resourceMegaportPortRead: %v", err)
 		d.SetId("")
@@ -90,7 +90,7 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	log.Printf("!!! CREATE")
-	uid, err := cfg.Client.Port.Create(d.Get("name").(string),
+	uid, err := cfg.Client.CreatePort(d.Get("name").(string),
 		uint64(d.Get("location_id").(int)), uint64(d.Get("speed").(int)),
 		uint64(d.Get("term").(int)))
 	if err != nil {
@@ -108,7 +108,7 @@ func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 	log.Printf("!!! DELETE")
 	cfg := m.(*Config)
-	err := cfg.Client.Port.Delete(d.Id())
+	err := cfg.Client.DeletePort(d.Id())
 	if err != nil && err != api.ErrNotFound {
 		return err
 	}

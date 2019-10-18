@@ -30,13 +30,10 @@ type Client struct {
 	BaseURL   string
 	Token     string
 	UserAgent string
-
-	Port *PortService
 }
 
 func NewClient(baseURL string) *Client {
 	c := &Client{c: &http.Client{}, BaseURL: baseURL}
-	c.Port = NewPortService(c)
 	return c
 }
 
