@@ -33,7 +33,9 @@ func (p *VxcService) create(v networkDesignInput) (*string, error) {
 	if err := p.c.do(req, nil); err != nil {
 		return nil, err
 	}
-	b.Seek(0, 0) // TODO: error handling ?
+	if _, err := b.Seek(0, 0); err != nil {
+		return nil, err
+	}
 	req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", p.c.BaseURL), b)
 	if err != nil {
 		return nil, err
