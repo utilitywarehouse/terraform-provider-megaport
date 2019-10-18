@@ -4,84 +4,75 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	//	"log"
 	"net/http"
 )
-
-type VxcService struct {
-	c *Client
-}
-
-func NewVxcService(c *Client) *VxcService {
-	return &VxcService{c}
-}
 
 type networkDesignInput interface {
 	toPayload() ([]byte, error)
 }
 
-func (p *VxcService) create(v networkDesignInput) (*string, error) {
+func (c *Client) create(v networkDesignInput) (*string, error) {
 	payload, err := v.toPayload()
 	if err != nil {
 		return nil, err
 	}
 	b := bytes.NewReader(payload)
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", p.c.BaseURL), b)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", c.BaseURL), b)
 	if err != nil {
 		return nil, err
 	}
-	if err := p.c.do(req, nil); err != nil {
+	if err := c.do(req, nil); err != nil {
 		return nil, err
 	}
 	if _, err := b.Seek(0, 0); err != nil {
 		return nil, err
 	}
-	req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", p.c.BaseURL), b)
+	req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", c.BaseURL), b)
 	if err != nil {
 		return nil, err
 	}
 	d := []map[string]interface{}{}
-	if err := p.c.do(req, &d); err != nil {
+	if err := c.do(req, &d); err != nil {
 		return nil, err
 	}
 	uid := d[0]["vxcJTechnicalServiceUid"].(string)
 	return &uid, nil
 }
 
-func (p *VxcService) get(uid string) (*ProductAssociatedVxc, error) { // TODO: change name
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", p.c.BaseURL, uid), nil)
+func (c *Client) get(uid string) (*ProductAssociatedVxc, error) { // TODO: change name
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", c.BaseURL, uid), nil)
 	if err != nil {
 		return nil, err
 	}
 	data := &ProductAssociatedVxc{}
-	if err := p.c.do(req, &data); err != nil {
+	if err := c.do(req, &data); err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-func (p *VxcService) update(uid string, v networkDesignInput) error {
+func (c *Client) update(uid string, v networkDesignInput) error {
 	payload, err := v.toPayload()
 	if err != nil {
 		return err
 	}
 	b := bytes.NewReader(payload)
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", p.c.BaseURL, uid), b)
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/v2/product/vxc/%s", c.BaseURL, uid), b)
 	if err != nil {
 		return err
 	}
-	if err := p.c.do(req, nil); err != nil {
+	if err := c.do(req, nil); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *VxcService) delete(uid string) error {
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", p.c.BaseURL, uid), nil)
+func (c *Client) delete(uid string) error {
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", c.BaseURL, uid), nil)
 	if err != nil {
 		return err
 	}
-	if err := p.c.do(req, nil); err != nil {
+	if err := c.do(req, nil); err != nil {
 		return err
 	}
 	return nil
@@ -171,18 +162,18 @@ func (v *PrivateVxcUpdateInput) toPayload() ([]byte, error) {
 	return json.Marshal(payload)
 }
 
-func (p *VxcService) CreatePrivateVxc(v *PrivateVxcCreateInput) (*string, error) {
-	return p.create(v)
+func (c *Client) CreatePrivateVxc(v *PrivateVxcCreateInput) (*string, error) {
+	return c.create(v)
 }
 
-func (p *VxcService) GetPrivateVxc(uid string) (*ProductAssociatedVxc, error) {
-	return p.get(uid)
+func (c *Client) GetPrivateVxc(uid string) (*ProductAssociatedVxc, error) {
+	return c.get(uid)
 }
 
-func (p *VxcService) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
-	return p.update(*v.ProductUid, v)
+func (c *Client) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
+	return c.update(*v.ProductUid, v)
 }
 
-func (p *VxcService) DeletePrivateVxc(uid string) error {
-	return p.delete(uid)
+func (c *Client) DeletePrivateVxc(uid string) error {
+	return c.delete(uid)
 }

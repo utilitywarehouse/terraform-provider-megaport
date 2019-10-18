@@ -32,13 +32,11 @@ type Client struct {
 	UserAgent string
 
 	Port *PortService
-	Vxc  *VxcService
 }
 
 func NewClient(baseURL string) *Client {
 	c := &Client{c: &http.Client{}, BaseURL: baseURL}
 	c.Port = NewPortService(c)
-	c.Vxc = NewVxcService(c)
 	return c
 }
 
