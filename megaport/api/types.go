@@ -20,7 +20,7 @@ type responseLoginData struct {
 
 // Location data
 type Location struct {
-	Address          Address
+	Address          MegaportAddress
 	Campus           string
 	Country          string
 	Id               uint64
@@ -38,7 +38,7 @@ type Location struct {
 }
 
 // Address data
-type Address struct {
+type MegaportAddress struct {
 	City     string
 	Country  string
 	Postcode string
@@ -77,14 +77,14 @@ type InternetExchange struct {
 	GroupMetro    string `json:"group_metro"`
 	Name          string
 	NetworkRegion string `json:"network_region"`
-	PrimaryIPv4   IPAddress
-	PrimaryIPv6   IPAddress
-	SecondaryIPv4 IPAddress
-	SecondaryIPv6 IPAddress
+	PrimaryIPv4   MegaportIPAddress
+	PrimaryIPv6   MegaportIPAddress
+	SecondaryIPv4 MegaportIPAddress
+	SecondaryIPv6 MegaportIPAddress
 	State         string
 }
 
-type IPAddress struct {
+type MegaportIPAddress struct {
 	Type  string
 	Value string
 }
@@ -265,7 +265,7 @@ type ProductAssociatedVxcApproval struct {
 	// Uid // TODO: haven't seen a value other than null
 }
 
-type Charges struct {
+type MegaportCharges struct {
 	Currency             string
 	DailyRate            float64
 	DailySetup           float64
