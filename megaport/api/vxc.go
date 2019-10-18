@@ -13,7 +13,7 @@ type networkDesignInput interface {
 	productType() string
 }
 
-func (c *Client) create(v networkDesignInput) (*string, error) {
+func (c *Client) create(v networkDesignInput) ([]map[string]interface{}, error) {
 	payload, err := v.toPayload()
 	if err != nil {
 		return nil, err
@@ -37,20 +37,18 @@ func (c *Client) create(v networkDesignInput) (*string, error) {
 	if err := c.do(req, &d); err != nil {
 		return nil, err
 	}
-	uid := d[0]["vxcJTechnicalServiceUid"].(string)
-	return &uid, nil
+	return d, nil
 }
 
-func (c *Client) get(uid string) (*ProductAssociatedVxc, error) { // TODO: change name
+func (c *Client) get(uid string, v interface{}) error {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", c.BaseURL, uid), nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	data := &ProductAssociatedVxc{}
-	if err := c.do(req, &data); err != nil {
-		return nil, err
+	if err := c.do(req, v); err != nil {
+		return err
 	}
-	return data, nil
+	return nil
 }
 
 func (c *Client) update(uid string, v networkDesignInput) error {
@@ -173,11 +171,18 @@ func (v *PrivateVxcUpdateInput) toPayload() ([]byte, error) {
 }
 
 func (c *Client) CreatePrivateVxc(v *PrivateVxcCreateInput) (*string, error) {
-	return c.create(v)
+	d, err := c.create(v)
+	if err != nil {
+		return nil, err
+	}
+	uid := d[0]["vxcJTechnicalServiceUid"].(string)
+	return &uid, nil
 }
 
-func (c *Client) GetPrivateVxc(uid string) (*ProductAssociatedVxc, error) {
-	return c.get(uid)
+func (c *Client) GetPrivateVxc(uid string) (*ProductAssociatedVxc, error) { // TODO: rename struct
+	d := &ProductAssociatedVxc{}
+	err := c.get(uid, d)
+	return d, err
 }
 
 func (c *Client) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
