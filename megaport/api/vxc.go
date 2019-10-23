@@ -84,11 +84,12 @@ type vxcCreatePayload struct {
 }
 
 type vxcCreatePayloadAssociatedVxc struct {
-	ProductName *string                  `json:"productName,omitempty"`
-	RateLimit   *uint64                  `json:"rateLimit,omitempty"`
-	CostCentre  *string                  `json:"costCentre,omitempty"`
-	AEnd        *vxcCreatePayloadVxcEndA `json:"aEnd,omitempty"`
-	BEnd        interface{}              `json:"bEnd,omitempty"`
+	ProductName   *string                  `json:"productName,omitempty"`
+	RateLimit     *uint64                  `json:"rateLimit,omitempty"`
+	CostCentre    *string                  `json:"costCentre,omitempty"`
+	AEnd          *vxcCreatePayloadVxcEndA `json:"aEnd,omitempty"`
+	BEnd          interface{}              `json:"bEnd,omitempty"`
+	PartnerConfig *PartnerConfig           `json:"partnerConfigs,omitempty"`
 }
 
 type vxcCreatePayloadVxcEndA struct {
@@ -194,9 +195,8 @@ func (c *Client) DeletePrivateVxc(uid string) error {
 }
 
 type vxcCreatePayloadVxcEndBCloud struct {
-	PartnerConfig *PartnerConfig `json:"partnerConfigs,omitempty"`
-	ProductUid    *string        `json:"productUid,omitempty"`
-	Vlan          *uint64        `json:"vlan,omitempty"`
+	ProductUid *string `json:"productUid,omitempty"`
+	Vlan       *uint64 `json:"vlan,omitempty"`
 }
 
 type PartnerConfig map[string]interface{}
@@ -214,14 +214,15 @@ type CloudVxcCreateInput struct {
 func (v *CloudVxcCreateInput) toPayload() ([]byte, error) {
 	payload := []*vxcCreatePayload{{ProductUid: v.ProductUidA}}
 	av := &vxcCreatePayloadAssociatedVxc{
-		ProductName: v.Name,
-		RateLimit:   v.RateLimit,
-		CostCentre:  v.InvoiceReference,
+		CostCentre:    v.InvoiceReference,
+		PartnerConfig: v.PartnerConfig,
+		ProductName:   v.Name,
+		RateLimit:     v.RateLimit,
 	}
 	if v.VlanA != nil {
 		av.AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
 	}
-	bEnd := &vxcCreatePayloadVxcEndBCloud{ProductUid: v.ProductUidB, PartnerConfig: v.PartnerConfig}
+	bEnd := &vxcCreatePayloadVxcEndBCloud{ProductUid: v.ProductUidB}
 	if *bEnd != (vxcCreatePayloadVxcEndBCloud{}) {
 		av.BEnd = bEnd
 	}
