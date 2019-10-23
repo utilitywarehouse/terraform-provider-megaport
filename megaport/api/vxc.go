@@ -84,25 +84,17 @@ type vxcCreatePayload struct {
 }
 
 type vxcCreatePayloadAssociatedVxc struct {
-	ProductName   *string                  `json:"productName,omitempty"`
-	RateLimit     *uint64                  `json:"rateLimit,omitempty"`
-	CostCentre    *string                  `json:"costCentre,omitempty"`
-	AEnd          *vxcCreatePayloadVxcEndA `json:"aEnd,omitempty"`
-	BEnd          interface{}              `json:"bEnd,omitempty"`
-	PartnerConfig *PartnerConfig           `json:"partnerConfigs,omitempty"`
+	ProductName   *string                 `json:"productName,omitempty"`
+	RateLimit     *uint64                 `json:"rateLimit,omitempty"`
+	CostCentre    *string                 `json:"costCentre,omitempty"`
+	AEnd          *vxcCreatePayloadVxcEnd `json:"aEnd,omitempty"`
+	BEnd          *vxcCreatePayloadVxcEnd `json:"bEnd,omitempty"`
+	PartnerConfig *PartnerConfig          `json:"partnerConfigs,omitempty"`
 }
 
-type vxcCreatePayloadVxcEndA struct {
-	Vlan *uint64 `json:"vlan,omitempty"`
-}
-
-type vxcCreatePayloadVxcEndBPrivate struct {
+type vxcCreatePayloadVxcEnd struct {
 	ProductUid *string `json:"productUid,omitempty"`
 	Vlan       *uint64 `json:"vlan,omitempty"`
-}
-
-type vxcCreatePayloadVxcEndBPartner struct {
-	ProductUid *string `json:"productUid,omitempty"`
 }
 
 type PrivateVxcCreateInput struct {
@@ -127,10 +119,10 @@ func (v *PrivateVxcCreateInput) toPayload() ([]byte, error) {
 		CostCentre:  v.InvoiceReference,
 	}
 	if v.VlanA != nil {
-		av.AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
+		av.AEnd = &vxcCreatePayloadVxcEnd{Vlan: v.VlanA}
 	}
-	bEnd := &vxcCreatePayloadVxcEndBPrivate{ProductUid: v.ProductUidB, Vlan: v.VlanB}
-	if *bEnd != (vxcCreatePayloadVxcEndBPrivate{}) {
+	bEnd := &vxcCreatePayloadVxcEnd{ProductUid: v.ProductUidB, Vlan: v.VlanB}
+	if *bEnd != (vxcCreatePayloadVxcEnd{}) {
 		av.BEnd = bEnd
 	}
 	if *av != (vxcCreatePayloadAssociatedVxc{}) {
@@ -215,10 +207,10 @@ func (v *CloudVxcCreateInput) toPayload() ([]byte, error) {
 		RateLimit:     v.RateLimit,
 	}
 	if v.VlanA != nil {
-		av.AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
+		av.AEnd = &vxcCreatePayloadVxcEnd{Vlan: v.VlanA}
 	}
-	bEnd := &vxcCreatePayloadVxcEndBPartner{ProductUid: v.ProductUidB}
-	if *bEnd != (vxcCreatePayloadVxcEndBPartner{}) {
+	bEnd := &vxcCreatePayloadVxcEnd{ProductUid: v.ProductUidB}
+	if *bEnd != (vxcCreatePayloadVxcEnd{}) {
 		av.BEnd = bEnd
 	}
 	if *av != (vxcCreatePayloadAssociatedVxc{}) {
