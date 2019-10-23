@@ -64,8 +64,10 @@ func (c *Client) CreatePort(v *PortCreateInput) (*string, error) {
 
 func (c *Client) GetPort(uid string) (*Product, error) {
 	d := &Product{}
-	err := c.get(uid, d)
-	return d, err
+	if err := c.get(uid, d); err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 func (c *Client) UpdatePort() error {
