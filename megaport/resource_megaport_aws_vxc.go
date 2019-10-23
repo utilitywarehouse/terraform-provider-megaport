@@ -7,15 +7,15 @@ import (
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
-func resourceMegaportPrivateVxc() *schema.Resource {
+func resourceMegaportAwsVxc() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMegaportPrivateVxcCreate,
-		Read:   resourceMegaportPrivateVxcRead,
-		Update: resourceMegaportPrivateVxcUpdate,
-		Delete: resourceMegaportPrivateVxcDelete,
+		Create: resourceMegaportAwsVxcCreate,
+		Read:   resourceMegaportAwsVxcRead,
+		Update: resourceMegaportAwsVxcUpdate,
+		Delete: resourceMegaportAwsVxcDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: resourceMegaportPrivateVxcImportState,
+			State: resourceMegaportAwsVxcImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -37,7 +37,7 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem:     resourceMegaportVxcEndElem(),
+				Elem:     resourceMegaportVxcAwsEndElem(),
 			},
 			"invoice_reference": {
 				Type:     schema.TypeString,
@@ -47,11 +47,38 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 	}
 }
 
-func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportVxcAwsEndElem() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"product_uid": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"aws_account_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"customer_asn": {
+				Type:     schema.TypeInt,
+				Required: true,
+				ForceNew: true,
+			},
+			"bgp_auth_key": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	p, err := cfg.Client.GetPrivateVxc(d.Id())
+	p, err := cfg.Client.GetCloudVxc(d.Id())
 	if err != nil {
-		log.Printf("resourceMegaportPrivateVxcRead: %v", err)
+		log.Printf("resourceMegaportAwsVxcRead: %v", err)
 		d.SetId("")
 		return nil
 	}
@@ -67,53 +94,54 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 	return nil
 }
 
-func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
-	uid, err := cfg.Client.CreatePrivateVxc(&api.PrivateVxcCreateInput{
+	uid, err := cfg.Client.CreateCloudVxc(&api.CloudVxcCreateInput{
 		ProductUidA:      api.String(a["product_uid"]),
 		ProductUidB:      api.String(b["product_uid"]),
 		Name:             api.String(d.Get("name")),
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		VlanA:            api.Uint64FromInt(a["vlan"]),
-		VlanB:            api.Uint64FromInt(b["vlan"]),
 		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
+		PartnerConfig: &api.PartnerConfig{
+			"connectType":       "AWS",
+			"type":              "private",
+			"asn":               65111,
+			"ownerAccount":      "684021030471",
+			"authKey":           nil,
+			"prefixes":          nil,
+			"customerIpAddress": nil,
+			"amazonIpAddress":   nil,
+		},
 	})
 	if err != nil {
 		return err
 	}
 	d.SetId(*uid)
-	return resourceMegaportPrivateVxcRead(d, m)
+	return resourceMegaportAwsVxcRead(d, m)
 }
 
-func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
-	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
-	var vlanB uint64
-	if d.HasChange("b_end.0.vlan") {
-		vlanB = uint64(b["vlan"].(int))
-	}
-	//if
-	log.Printf(">>1 %#v", a)
-	log.Printf(">>2 %#v", a["vlan"])
-	if err := cfg.Client.UpdatePrivateVxc(&api.PrivateVxcUpdateInput{
+	//b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
+	if err := cfg.Client.UpdateCloudVxc(&api.CloudVxcUpdateInput{
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		Name:             api.String(d.Get("name")),
 		ProductUid:       api.String(d.Id()),
 		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
 		VlanA:            api.Uint64FromInt(a["vlan"]),
-		VlanB:            api.Uint64FromInt(vlanB),
 	}); err != nil {
 		return err
 	}
-	return resourceMegaportPrivateVxcRead(d, m)
+	return resourceMegaportAwsVxcRead(d, m)
 }
 
-func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportAwsVxcDelete(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	err := cfg.Client.DeletePrivateVxc(d.Id())
+	err := cfg.Client.DeleteCloudVxc(d.Id())
 	if err != nil && err != api.ErrNotFound {
 		return err
 	}
@@ -123,6 +151,6 @@ func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) err
 	return nil
 }
 
-func resourceMegaportPrivateVxcImportState(*schema.ResourceData, interface{}) ([]*schema.ResourceData, error) {
+func resourceMegaportAwsVxcImportState(*schema.ResourceData, interface{}) ([]*schema.ResourceData, error) {
 	return nil, nil
 }

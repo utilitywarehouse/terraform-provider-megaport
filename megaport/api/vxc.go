@@ -84,11 +84,12 @@ type vxcCreatePayload struct {
 }
 
 type vxcCreatePayloadAssociatedVxc struct {
-	ProductName *string                  `json:"productName,omitempty"`
-	RateLimit   *uint64                  `json:"rateLimit,omitempty"`
-	CostCentre  *string                  `json:"costCentre,omitempty"`
-	AEnd        *vxcCreatePayloadVxcEndA `json:"aEnd,omitempty"`
-	BEnd        interface{}              `json:"bEnd,omitempty"`
+	ProductName   *string                  `json:"productName,omitempty"`
+	RateLimit     *uint64                  `json:"rateLimit,omitempty"`
+	CostCentre    *string                  `json:"costCentre,omitempty"`
+	AEnd          *vxcCreatePayloadVxcEndA `json:"aEnd,omitempty"`
+	BEnd          interface{}              `json:"bEnd,omitempty"`
+	PartnerConfig *PartnerConfig           `json:"partnerConfigs,omitempty"`
 }
 
 type vxcCreatePayloadVxcEndA struct {
@@ -190,5 +191,92 @@ func (c *Client) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
 }
 
 func (c *Client) DeletePrivateVxc(uid string) error {
+	return c.delete(uid)
+}
+
+type vxcCreatePayloadVxcEndBCloud struct {
+	ProductUid *string `json:"productUid,omitempty"`
+	Vlan       *uint64 `json:"vlan,omitempty"`
+}
+
+type PartnerConfig map[string]interface{}
+
+type CloudVxcCreateInput struct {
+	InvoiceReference *string
+	Name             *string
+	PartnerConfig    *PartnerConfig
+	ProductUidA      *string
+	ProductUidB      *string
+	RateLimit        *uint64
+	VlanA            *uint64
+}
+
+func (v *CloudVxcCreateInput) toPayload() ([]byte, error) {
+	payload := []*vxcCreatePayload{{ProductUid: v.ProductUidA}}
+	av := &vxcCreatePayloadAssociatedVxc{
+		CostCentre:    v.InvoiceReference,
+		PartnerConfig: v.PartnerConfig,
+		ProductName:   v.Name,
+		RateLimit:     v.RateLimit,
+	}
+	if v.VlanA != nil {
+		av.AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
+	}
+	bEnd := &vxcCreatePayloadVxcEndBCloud{ProductUid: v.ProductUidB}
+	if *bEnd != (vxcCreatePayloadVxcEndBCloud{}) {
+		av.BEnd = bEnd
+	}
+	if *av != (vxcCreatePayloadAssociatedVxc{}) {
+		payload[0].AssociatedVxcs = []*vxcCreatePayloadAssociatedVxc{av}
+	}
+	return json.Marshal(payload)
+}
+
+func (v *CloudVxcCreateInput) productType() string {
+	return ProductTypeVXC
+}
+
+type CloudVxcUpdateInput struct {
+	InvoiceReference *string
+	Name             *string
+	ProductUid       *string
+	RateLimit        *uint64
+	VlanA            *uint64
+}
+
+func (v *CloudVxcUpdateInput) productType() string {
+	return ProductTypeVXC
+}
+
+func (v *CloudVxcUpdateInput) toPayload() ([]byte, error) {
+	payload := &vxcUpdatePayload{
+		AEndVlan:   v.VlanA,
+		CostCentre: v.InvoiceReference,
+		Name:       v.Name,
+		RateLimit:  v.RateLimit,
+	}
+	return json.Marshal(payload)
+}
+
+func (c *Client) CreateCloudVxc(v *CloudVxcCreateInput) (*string, error) {
+	d, err := c.create(v)
+	if err != nil {
+		return nil, err
+	}
+	uid := d[0]["vxcJTechnicalServiceUid"].(string)
+	return &uid, nil
+}
+
+func (c *Client) GetCloudVxc(uid string) (*ProductAssociatedVxc, error) { // TODO: rename struct
+	d := &ProductAssociatedVxc{}
+	err := c.get(uid, d)
+	return d, err
+}
+
+func (c *Client) UpdateCloudVxc(v *CloudVxcUpdateInput) error {
+	return c.update(*v.ProductUid, v)
+}
+
+func (c *Client) DeleteCloudVxc(uid string) error {
 	return c.delete(uid)
 }
