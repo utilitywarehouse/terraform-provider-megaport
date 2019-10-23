@@ -1,10 +1,8 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	//	"log"
 	"net/http"
 )
 
@@ -19,69 +17,55 @@ const (
 // mcr1: virtual = true , type = MEGAPORT
 // mcr2: virtual = false, type = MCR2
 
-type portOrder struct {
-	CreateDate   uint64 `json:"createDate,omitempty"`   // TODO: need to fill in? :o
-	LagPortCount uint64 `json:"lagPortCount,omitempty"` // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
-	LocationId   uint64 `json:"locationId"`
-	LocationUid  string `json:"locationUid,omitempty"` // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
-	Market       string `json:"market,omitempty"`      // TODO: what is this ???
-	PortSpeed    uint64 `json:"portSpeed"`             // TODO: validate 1000, 10000, 100000
-	ProductName  string `json:"productName"`
-	ProductType  string `json:"productType"` // TODO: "MEGAPORT"?
-	Term         uint64 `json:"term"`
-	Virtual      bool   `json:"virtual"` // TODO: False for port, true for MCR1.0 (https://dev.megaport.com/#standard-api-orders-validate-port-order)
+type portCreatePayload struct {
+	CreateDate   *uint64 `json:"createDate,omitempty"`   // TODO: need to fill in? :o
+	LagPortCount *uint64 `json:"lagPortCount,omitempty"` // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
+	LocationId   *uint64 `json:"locationId"`
+	LocationUid  *string `json:"locationUid,omitempty"` // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
+	Market       *string `json:"market,omitempty"`      // TODO: what is this ???
+	PortSpeed    *uint64 `json:"portSpeed"`             // TODO: validate 1000, 10000, 100000
+	ProductName  *string `json:"productName"`
+	ProductType  *string `json:"productType"` // TODO: "MEGAPORT"?
+	Term         *uint64 `json:"term"`
+	Virtual      *bool   `json:"virtual"` // TODO: False for port, true for MCR1.0 (https://dev.megaport.com/#standard-api-orders-validate-port-order)
 }
 
-type portOrderConfig struct {
-	McrASN uint64 `json:"mcrAsn,omitempty"`
+type PortCreateInput struct {
+	LocationId *uint64
+	Name       *string
+	Speed      *uint64
+	Term       *uint64
 }
 
-func (c *Client) CreatePort(name string, locationId, speed, term uint64) (string, error) {
-	payload, err := json.Marshal([]portOrder{portOrder{
-		// CreateDate   uint64          // TODO: need to fill in? :o
-		//LagPortCount uint64          // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
-		LocationId: locationId,
-		// LocationUid  string // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
-		// Market : l.Market,
-		PortSpeed:   speed,
-		ProductName: name,
-		ProductType: ProductTypePort,
-		Term:        term,
-		Virtual:     false,
-	}})
+func (v *PortCreateInput) productType() string {
+	return ProductTypePort
+}
+
+func (v *PortCreateInput) toPayload() ([]byte, error) {
+	payload := []*portCreatePayload{{
+		LocationId:  v.LocationId,
+		PortSpeed:   v.Speed,
+		ProductName: v.Name,
+		ProductType: String(ProductTypePort), // TODO
+		Term:        v.Term,
+		Virtual:     Bool(false), // TODO
+	}}
+	return json.Marshal(payload)
+}
+
+func (c *Client) CreatePort(v *PortCreateInput) (*string, error) {
+	d, err := c.create(v)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	b := bytes.NewReader(payload)
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/validate", c.BaseURL), b)
-	if err != nil {
-		return "", err
-	}
-	if err := c.do(req, nil); err != nil {
-		return "", err
-	}
-	b.Seek(0, 0) // TODO: error handling ?
-	req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/networkdesign/buy", c.BaseURL), b)
-	if err != nil {
-		return "", err
-	}
-	d := []map[string]interface{}{}
-	if err := c.do(req, &d); err != nil {
-		return "", err
-	}
-	return d[0]["technicalServiceUid"].(string), nil
+	uid := d[0]["technicalServiceUid"].(string)
+	return &uid, nil
 }
 
 func (c *Client) GetPort(uid string) (*Product, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/%s", c.BaseURL, uid), nil)
-	if err != nil {
-		return nil, err
-	}
-	data := &Product{}
-	if err := c.do(req, &data); err != nil {
-		return nil, err
-	}
-	return data, nil
+	d := &Product{}
+	err := c.get(uid, d)
+	return d, err
 }
 
 func (c *Client) UpdatePort() error {
@@ -89,14 +73,7 @@ func (c *Client) UpdatePort() error {
 }
 
 func (c *Client) DeletePort(uid string) error {
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v2/product/%s/action/CANCEL_NOW", c.BaseURL, uid), nil)
-	if err != nil {
-		return err
-	}
-	if err := c.do(req, nil); err != nil {
-		return err
-	}
-	return nil
+	return c.delete(uid)
 }
 
 func (c *Client) ListPorts() ([]*Product, error) {

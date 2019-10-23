@@ -89,24 +89,24 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 
 func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	log.Printf("!!! CREATE")
-	uid, err := cfg.Client.CreatePort(d.Get("name").(string),
-		uint64(d.Get("location_id").(int)), uint64(d.Get("speed").(int)),
-		uint64(d.Get("term").(int)))
+	uid, err := cfg.Client.CreatePort(&api.PortCreateInput{
+		Name:       api.String(d.Get("name")),
+		LocationId: api.Uint64FromInt(d.Get("location_id")),
+		Speed:      api.Uint64FromInt(d.Get("speed")),
+		Term:       api.Uint64FromInt(d.Get("term")),
+	})
 	if err != nil {
 		return err
 	}
-	d.SetId(uid)
-	return nil
+	d.SetId(*uid)
+	return resourceMegaportPortCreate(d, m)
 }
 
 func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
-	log.Printf("!!! UPDATE")
-	return nil
+	return nil // TODO
 }
 
 func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
-	log.Printf("!!! DELETE")
 	cfg := m.(*Config)
 	err := cfg.Client.DeletePort(d.Id())
 	if err != nil && err != api.ErrNotFound {
@@ -119,8 +119,7 @@ func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceMegaportPortImportState(*schema.ResourceData, interface{}) ([]*schema.ResourceData, error) {
-	log.Printf("!!! IMPORT")
-	return nil, nil
+	return nil, nil // TODO
 }
 
 func flattenVxc(v api.ProductAssociatedVxc) interface{} {

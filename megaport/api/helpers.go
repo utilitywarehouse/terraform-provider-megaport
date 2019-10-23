@@ -14,3 +14,8 @@ func Uint64FromInt(v interface{}) *uint64 {
 	r := uint64(v.(int))
 	return &r
 }
+
+func Bool(v interface{}) *bool {
+	r := v.(bool)
+	return &r
+}
