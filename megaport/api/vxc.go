@@ -102,7 +102,7 @@ type vxcCreatePayloadVxcEndBPrivate struct {
 }
 
 type vxcCreatePayloadVxcEndBPartner struct {
-	ProductUid string `json:"productUid,omitempty"`
+	ProductUid *string `json:"productUid,omitempty"`
 }
 
 type PrivateVxcCreateInput struct {
@@ -194,11 +194,6 @@ func (c *Client) DeletePrivateVxc(uid string) error {
 	return c.delete(uid)
 }
 
-type vxcCreatePayloadVxcEndBCloud struct {
-	ProductUid *string `json:"productUid,omitempty"`
-	Vlan       *uint64 `json:"vlan,omitempty"`
-}
-
 type PartnerConfig map[string]interface{}
 
 type CloudVxcCreateInput struct {
@@ -222,8 +217,8 @@ func (v *CloudVxcCreateInput) toPayload() ([]byte, error) {
 	if v.VlanA != nil {
 		av.AEnd = &vxcCreatePayloadVxcEndA{Vlan: v.VlanA}
 	}
-	bEnd := &vxcCreatePayloadVxcEndBCloud{ProductUid: v.ProductUidB}
-	if *bEnd != (vxcCreatePayloadVxcEndBCloud{}) {
+	bEnd := &vxcCreatePayloadVxcEndBPartner{ProductUid: v.ProductUidB}
+	if *bEnd != (vxcCreatePayloadVxcEndBPartner{}) {
 		av.BEnd = bEnd
 	}
 	if *av != (vxcCreatePayloadAssociatedVxc{}) {
