@@ -194,9 +194,9 @@ func (c *Client) DeletePrivateVxc(uid string) error {
 }
 
 type vxcCreatePayloadVxcEndBCloud struct {
-	PartnerConfig interface{} `json:"partnerConfigs,omitempty"`
-	ProductUid    *string     `json:"productUid,omitempty"`
-	Vlan          *uint64     `json:"vlan,omitempty"`
+	PartnerConfig *PartnerConfig `json:"partnerConfigs,omitempty"`
+	ProductUid    *string        `json:"productUid,omitempty"`
+	Vlan          *uint64        `json:"vlan,omitempty"`
 }
 
 type PartnerConfig map[string]interface{}
