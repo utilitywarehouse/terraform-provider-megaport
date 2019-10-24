@@ -103,7 +103,16 @@ func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
-	return nil // TODO
+	cfg := m.(*Config)
+	if err := cfg.Client.UpdatePort(&api.PortUpdateInput{
+		InvoiceReference: api.String(d.Get("invoice_reference")),
+		Name:             api.String(d.Get("name")),
+		ProductUid:       api.String(d.Id()),
+		//RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
+	}); err != nil {
+		return err
+	}
+	return resourceMegaportPortRead(d, m)
 }
 
 func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {

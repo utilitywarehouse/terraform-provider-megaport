@@ -30,6 +30,13 @@ type portCreatePayload struct {
 	Virtual      *bool   `json:"virtual"` // TODO: False for port, true for MCR1.0 (https://dev.megaport.com/#standard-api-orders-validate-port-order)
 }
 
+type portUpdatePayload struct {
+	Name                  *string `json:"name,omitempty"`
+	CostCentre            *string `json:"costCentre,omitempty"`
+	MarketplaceVisibility *bool   `json:"marketplaceVisibility,omitempty"`
+	// RateLimit             *uint64 `json:"rateLimit,omitempty"` // Only applicable to MCR. Must be one of 100, 500, 1000, 2000, 3000, 4000, 5000
+}
+
 type PortCreateInput struct {
 	LocationId *uint64
 	Name       *string
@@ -53,6 +60,26 @@ func (v *PortCreateInput) toPayload() ([]byte, error) {
 	return json.Marshal(payload)
 }
 
+type PortUpdateInput struct {
+	InvoiceReference      *string
+	MarketplaceVisibility *bool
+	Name                  *string
+	ProductUid            *string
+}
+
+func (v *PortUpdateInput) productType() string {
+	return ProductTypePort
+}
+
+func (v *PortUpdateInput) toPayload() ([]byte, error) {
+	payload := &portUpdatePayload{
+		Name:                  v.Name,
+		CostCentre:            v.InvoiceReference,
+		MarketplaceVisibility: v.MarketplaceVisibility,
+	}
+	return json.Marshal(payload)
+}
+
 func (c *Client) CreatePort(v *PortCreateInput) (*string, error) {
 	d, err := c.create(v)
 	if err != nil {
@@ -70,8 +97,8 @@ func (c *Client) GetPort(uid string) (*Product, error) {
 	return d, nil
 }
 
-func (c *Client) UpdatePort() error {
-	return nil
+func (c *Client) UpdatePort(v *PortUpdateInput) error {
+	return c.update(*v.ProductUid, v)
 }
 
 func (c *Client) DeletePort(uid string) error {
