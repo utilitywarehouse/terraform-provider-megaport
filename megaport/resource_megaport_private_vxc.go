@@ -95,9 +95,6 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 	if d.HasChange("b_end.0.vlan") {
 		vlanB = uint64(b["vlan"].(int))
 	}
-	//if
-	log.Printf(">>1 %#v", a)
-	log.Printf(">>2 %#v", a["vlan"])
 	if err := cfg.Client.UpdatePrivateVxc(&api.PrivateVxcUpdateInput{
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		Name:             api.String(d.Get("name")),
