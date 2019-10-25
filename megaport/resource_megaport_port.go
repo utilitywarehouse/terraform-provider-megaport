@@ -17,7 +17,7 @@ func resourceMegaportPort() *schema.Resource {
 		Delete: resourceMegaportPortDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: resourceMegaportPortImportState,
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -125,10 +125,6 @@ func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
 	}
 	return nil
-}
-
-func resourceMegaportPortImportState(*schema.ResourceData, interface{}) ([]*schema.ResourceData, error) {
-	return nil, nil // TODO
 }
 
 func flattenVxc(v api.ProductAssociatedVxc) interface{} {
