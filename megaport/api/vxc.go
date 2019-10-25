@@ -256,8 +256,10 @@ func (c *Client) CreateCloudVxc(v *CloudVxcCreateInput) (*string, error) {
 
 func (c *Client) GetCloudVxc(uid string) (*ProductAssociatedVxc, error) { // TODO: rename struct
 	d := &ProductAssociatedVxc{}
-	err := c.get(uid, d)
-	return d, err
+	if err := c.get(uid, d); err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 func (c *Client) UpdateCloudVxc(v *CloudVxcUpdateInput) error {
