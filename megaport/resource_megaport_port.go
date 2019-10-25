@@ -99,7 +99,7 @@ func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	d.SetId(*uid)
-	return resourceMegaportPortCreate(d, m)
+	return resourceMegaportPortRead(d, m)
 }
 
 func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
