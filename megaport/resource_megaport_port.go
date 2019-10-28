@@ -82,7 +82,10 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("speed", p.PortSpeed)
 	d.Set("term", p.ContractTermMonths)
 	d.Set("associated_vxcs", schema.NewSet(schema.HashResource(resourceMegaportPrivateVxc()), flattenVxcList(p.AssociatedVxcs)))
-	d.Set("marketplace_visibility", p.MarketplaceVisibility)
+	d.Set("marketplace_visibility", "private")
+	if p.MarketplaceVisibility {
+		d.Set("marketplace_visibility", "public")
+	}
 	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil
 }
