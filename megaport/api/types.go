@@ -242,6 +242,7 @@ type ProductAssociatedVxc struct {
 	ProductUid         string
 	ProvisioningStatus string
 	RateLimit          uint64
+	Resources          ProductAssociatedVxcResources // TODO: not documented - is the struct here the same as in Product?
 	SecondaryName      string
 	UsageAlgorithm     string
 	VxcApproval        ProductAssociatedVxcApproval
@@ -263,6 +264,62 @@ type ProductAssociatedVxcApproval struct {
 	// Status // TODO: haven't seen a value other than null
 	// Type // TODO: haven't seen a value other than null
 	// Uid // TODO: haven't seen a value other than null
+}
+
+type ProductAssociatedVxcResources struct {
+	AwsVirtualInterface ProductAssociatedVxcResourcesAwsVirtualInterface `json:"aws_virtualinterface"`
+}
+
+type ProductAssociatedVxcResourcesAwsVirtualInterface struct {
+	Account         string
+	AmazonAsn       uint64 `json:"-"`
+	AmazonIpAddress string
+	AmazonAddress   string `json:"Amazon_address"`
+	// Amazon_Asn       uint64 `json:"Amazon_asn"`
+	Asn     uint64 `json:"-"`
+	AuthKey string
+	// Auth_key string `json:"Auth_key"`
+	ConnectType       string
+	CustomerIpAddress string
+	// Customer_address string `json:"Customer_address"`
+	Id           uint64 `json:"-"`
+	Name         string
+	OwnerAccount string
+	PeerAsn      uint64 `json:"-"`
+	// Prefixes // null?
+	ResourceName string `json:"Resource_name"`
+	ResourceType string `json:"Resource_type"`
+	Type         string
+	VifId        string `json:"Vif_id"`
+	Vlan         uint64 `json:"-"`
+}
+
+type productAssociatedVxcResourcesAwsVirtualInterfaceFloats struct {
+	AmazonAsn float64 `json:"amazonAsn"`
+	Asn       float64 `json:"asn"`
+	Id        float64 `json:"id"`
+	PeerAsn   float64 `json:"peerAsn"`
+	Vlan      float64 `json:"vlan"`
+}
+
+type productAssociatedVxcResourcesAwsVirtualInterface ProductAssociatedVxcResourcesAwsVirtualInterface
+
+func (pr *ProductAssociatedVxcResourcesAwsVirtualInterface) UnmarshalJSON(b []byte) (err error) {
+	v := productAssociatedVxcResourcesAwsVirtualInterface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	*pr = ProductAssociatedVxcResourcesAwsVirtualInterface(v)
+	vf := productAssociatedVxcResourcesAwsVirtualInterfaceFloats{}
+	if err := json.Unmarshal(b, &vf); err != nil {
+		return err
+	}
+	pr.AmazonAsn = uint64(vf.AmazonAsn)
+	pr.Asn = uint64(vf.Asn)
+	pr.Id = uint64(vf.Id)
+	pr.PeerAsn = uint64(vf.PeerAsn)
+	pr.Vlan = uint64(vf.Vlan)
+	return nil
 }
 
 type MegaportCharges struct {

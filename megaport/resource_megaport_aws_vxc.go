@@ -74,6 +74,15 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 	}
 }
 
+func flattenVxcEndAws(v api.ProductAssociatedVxcEnd, r api.ProductAssociatedVxcResources) []interface{} {
+	return []interface{}{map[string]interface{}{
+		"product_uid":    v.ProductUid,
+		"aws_account_id": r.AwsVirtualInterface.OwnerAccount,
+		"customer_asn":   int(r.AwsVirtualInterface.Asn),
+		"bgp_auth_key":   r.AwsVirtualInterface.AuthKey,
+	}}
+}
+
 func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetCloudVxc(d.Id())
@@ -89,7 +98,9 @@ func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", p.ProductName)
 	d.Set("rate_limit", p.RateLimit)
 	d.Set("a_end", flattenVxcEnd(p.AEnd))
-	d.Set("b_end", flattenVxcEnd(p.BEnd))
+	if err := d.Set("b_end", flattenVxcEndAws(p.BEnd, p.Resources)); err != nil {
+		return err
+	}
 	d.Set("invoice_reference", p.CostCentre)
 	return nil
 }
