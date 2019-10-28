@@ -108,9 +108,9 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		PartnerConfig: &api.PartnerConfig{
 			"connectType":       "AWS",
 			"type":              "private",
-			"asn":               65111,
-			"ownerAccount":      "684021030471",
-			"authKey":           nil,
+			"asn":               b["customer_asn"],
+			"ownerAccount":      b["aws_account_id"],
+			"authKey":           b["bgp_auth_key"],
 			"prefixes":          nil,
 			"customerIpAddress": nil,
 			"amazonIpAddress":   nil,
