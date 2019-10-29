@@ -77,14 +77,28 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return nil
 	}
-	d.Set("location_id", p.LocationId)
-	d.Set("name", p.ProductName)
-	d.Set("speed", p.PortSpeed)
-	d.Set("term", p.ContractTermMonths)
-	d.Set("associated_vxcs", schema.NewSet(schema.HashResource(resourceMegaportPrivateVxc()), flattenVxcList(p.AssociatedVxcs)))
-	d.Set("marketplace_visibility", "private")
+	if err := d.Set("location_id", p.LocationId); err != nil {
+		return err
+	}
+	if err := d.Set("name", p.ProductName); err != nil {
+		return err
+	}
+	if err := d.Set("speed", p.PortSpeed); err != nil {
+		return err
+	}
+	if err := d.Set("term", p.ContractTermMonths); err != nil {
+		return err
+	}
+	if err := d.Set("associated_vxcs", schema.NewSet(schema.HashResource(resourceMegaportPrivateVxc()), flattenVxcList(p.AssociatedVxcs))); err != nil {
+		return err
+	}
+	if err := d.Set("marketplace_visibility", "private"); err != nil {
+		return err
+	}
 	if p.MarketplaceVisibility {
-		d.Set("marketplace_visibility", "public")
+		if err := d.Set("marketplace_visibility", "public"); err != nil {
+			return err
+		}
 	}
 	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil

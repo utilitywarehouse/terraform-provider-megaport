@@ -95,13 +95,21 @@ func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return nil
 	}
-	d.Set("name", p.ProductName)
-	d.Set("rate_limit", p.RateLimit)
-	d.Set("a_end", flattenVxcEnd(p.AEnd))
+	if err := d.Set("name", p.ProductName); err != nil {
+		return err
+	}
+	if err := d.Set("rate_limit", p.RateLimit); err != nil {
+		return err
+	}
+	if err := d.Set("a_end", flattenVxcEnd(p.AEnd)); err != nil {
+		return err
+	}
 	if err := d.Set("b_end", flattenVxcEndAws(p.BEnd, p.Resources)); err != nil {
 		return err
 	}
-	d.Set("invoice_reference", p.CostCentre)
+	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
+		return err
+	}
 	return nil
 }
 
