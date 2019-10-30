@@ -1,9 +1,30 @@
 package megaport
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
+
+func resourceAttributePrivatePublic() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeString,
+		Optional: true,
+		Default:  "private",
+		StateFunc: func(v interface{}) string {
+			return strings.ToLower(v.(string))
+		},
+		ValidateFunc: func(v interface{}, k string) (warns []string, errs []error) {
+			vv := strings.ToLower(v.(string))
+			if vv != "public" && vv != "private" {
+				errs = append(errs, fmt.Errorf("%s must be either 'public' or 'private', got %s", k, vv))
+			}
+			return
+		},
+	}
+}
 
 func resourceMegaportVxcEndElem() *schema.Resource {
 	return &schema.Resource{
