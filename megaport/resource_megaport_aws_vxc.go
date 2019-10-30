@@ -61,10 +61,22 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"aws_ip_address": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateCIDRAddress,
+			},
 			"customer_asn": {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
+			},
+			"customer_ip_address": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateCIDRAddress,
 			},
 			"bgp_auth_key": {
 				Type:     schema.TypeString,
@@ -78,11 +90,13 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 
 func flattenVxcEndAws(v api.ProductAssociatedVxcEnd, r api.ProductAssociatedVxcResources) []interface{} {
 	return []interface{}{map[string]interface{}{
-		"product_uid":    v.ProductUid,
-		"aws_account_id": r.AwsVirtualInterface.OwnerAccount,
-		"customer_asn":   int(r.AwsVirtualInterface.Asn),
-		"bgp_auth_key":   r.AwsVirtualInterface.AuthKey,
-		"type":           strings.ToLower(r.AwsVirtualInterface.Type),
+		"product_uid":         v.ProductUid,
+		"aws_account_id":      r.AwsVirtualInterface.OwnerAccount,
+		"aws_ip_address":      r.AwsVirtualInterface.AmazonIpAddress,
+		"customer_asn":        int(r.AwsVirtualInterface.Asn),
+		"customer_ip_address": r.AwsVirtualInterface.CustomerIpAddress,
+		"bgp_auth_key":        r.AwsVirtualInterface.AuthKey,
+		"type":                strings.ToLower(r.AwsVirtualInterface.Type),
 	}}
 }
 

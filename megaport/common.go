@@ -2,6 +2,7 @@ package megaport
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,7 +20,7 @@ func resourceAttributePrivatePublic() *schema.Schema {
 		ValidateFunc: func(v interface{}, k string) (warns []string, errs []error) {
 			vv := strings.ToLower(v.(string))
 			if vv != "public" && vv != "private" {
-				errs = append(errs, fmt.Errorf("%s must be either 'public' or 'private', got %s", k, vv))
+				errs = append(errs, fmt.Errorf("%q must be either 'public' or 'private', got %s", k, vv))
 			}
 			return
 		},
@@ -41,6 +42,19 @@ func resourceMegaportVxcEndElem() *schema.Resource {
 			},
 		},
 	}
+}
+
+func validateCIDRAddress(v interface{}, k string) (warns []string, errs []error) {
+	vv := v.(string)
+	_, ipnet, err := net.ParseCIDR(vv)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("%q is not a valid CIDR: %s", k, err))
+		return
+	}
+	if ipnet == nil || vv != ipnet.String() {
+		errs = append(errs, fmt.Errorf("%q is not a valid CIDR", k))
+	}
+	return
 }
 
 func flattenVxcEnd(v api.ProductAssociatedVxcEnd) []interface{} {
