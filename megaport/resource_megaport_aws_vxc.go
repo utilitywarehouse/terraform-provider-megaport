@@ -2,6 +2,7 @@ package megaport
 
 import (
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
@@ -70,6 +71,7 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"type": resourceAttributePrivatePublic(),
 		},
 	}
 }
@@ -80,6 +82,7 @@ func flattenVxcEndAws(v api.ProductAssociatedVxcEnd, r api.ProductAssociatedVxcR
 		"aws_account_id": r.AwsVirtualInterface.OwnerAccount,
 		"customer_asn":   int(r.AwsVirtualInterface.Asn),
 		"bgp_auth_key":   r.AwsVirtualInterface.AuthKey,
+		"type":           strings.ToLower(r.AwsVirtualInterface.Type),
 	}}
 }
 
