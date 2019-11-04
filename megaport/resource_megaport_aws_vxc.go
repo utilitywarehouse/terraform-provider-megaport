@@ -72,6 +72,11 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validateCIDRAddress,
 			},
+			"bgp_auth_key": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 			"customer_asn": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -83,11 +88,6 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validateCIDRAddress,
 			},
-			"bgp_auth_key": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
 			"type": resourceAttributePrivatePublic(),
 		},
 	}
@@ -96,11 +96,12 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 func flattenVxcEndAws(v api.ProductAssociatedVxcEnd, r api.ProductAssociatedVxcResources) []interface{} {
 	return []interface{}{map[string]interface{}{
 		"product_uid":         v.ProductUid,
+		"aws_connection_name": r.AwsVirtualInterface.Name,
 		"aws_account_id":      r.AwsVirtualInterface.OwnerAccount,
 		"aws_ip_address":      r.AwsVirtualInterface.AmazonIpAddress,
+		"bgp_auth_key":        r.AwsVirtualInterface.AuthKey,
 		"customer_asn":        int(r.AwsVirtualInterface.Asn),
 		"customer_ip_address": r.AwsVirtualInterface.CustomerIpAddress,
-		"bgp_auth_key":        r.AwsVirtualInterface.AuthKey,
 		"type":                strings.ToLower(r.AwsVirtualInterface.Type),
 	}}
 }

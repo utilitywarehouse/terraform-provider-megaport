@@ -219,16 +219,16 @@ func (v *PartnerConfigAWS) toPayload() interface{} {
 }
 
 type vxcCreatePayloadPartnerConfigAWS struct {
-	// AmazonAsn    *uint64 `json:""`
-	AmazonIpAddress   *string `json:"amazonIpAddress"`
-	Asn               *uint64 `json:"asn"`
-	AuthKey           *string `json:"authKey"`
-	ConnectType       *string `json:"connectType"`
-	CustomerIpAddress *string `json:"customerIpAddress"`
-	Name              *string `json:"name"`
-	OwnerAccount      *string `json:"ownerAccount"`
-	// Prefixes     *string `json:""`
-	Type *string `json:"type"`
+	// AmazonAsn    *uint64 `json:",omitempty"`
+	AmazonIpAddress   *string `json:"amazonIpAddress,omitempty"`
+	Asn               *uint64 `json:"asn,omitempty"`
+	AuthKey           *string `json:"authKey,omitempty"`
+	ConnectType       *string `json:"connectType,omitempty"`
+	CustomerIpAddress *string `json:"customerIpAddress,omitempty"`
+	Name              *string `json:"name,omitempty"`
+	OwnerAccount      *string `json:"ownerAccount,omitempty"`
+	// Prefixes     *string `json:",omitempty"`
+	Type *string `json:"type,omitempty"`
 }
 
 type CloudVxcCreateInput struct {
