@@ -141,15 +141,14 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		VlanA:            api.Uint64FromInt(a["vlan"]),
 		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-		PartnerConfig: &api.PartnerConfig{
-			"connectType":       "AWS",
-			"type":              "private",
-			"asn":               b["customer_asn"],
-			"ownerAccount":      b["aws_account_id"],
-			"authKey":           b["bgp_auth_key"],
-			"prefixes":          nil,
-			"customerIpAddress": nil,
-			"amazonIpAddress":   nil,
+		PartnerConfig: &api.PartnerConfigAWS{
+			AWSConnectionName: api.String(""),
+			AWSAccountID:      api.String(b["aws_account_id"]),
+			AmazonIPAddress:   nil,
+			BGPAuthKey:        api.String(b["bgp_auth_key"]),
+			CustomerASN:       api.Uint64(b["customer_asn"]),
+			CustomerIPAddress: nil,
+			Type:              api.String("private"),
 		},
 	})
 	if err != nil {

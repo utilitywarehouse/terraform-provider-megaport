@@ -89,7 +89,7 @@ type vxcCreatePayloadAssociatedVxc struct {
 	CostCentre    *string                 `json:"costCentre,omitempty"`
 	AEnd          *vxcCreatePayloadVxcEnd `json:"aEnd,omitempty"`
 	BEnd          *vxcCreatePayloadVxcEnd `json:"bEnd,omitempty"`
-	PartnerConfig *PartnerConfig          `json:"partnerConfigs,omitempty"`
+	PartnerConfig interface{}             `json:"partnerConfigs,omitempty"`
 }
 
 type vxcCreatePayloadVxcEnd struct {
@@ -186,12 +186,55 @@ func (c *Client) DeletePrivateVxc(uid string) error {
 	return c.delete(uid)
 }
 
-type PartnerConfig map[string]interface{}
+type PartnerConfig interface {
+	connectType() string
+	toPayload() interface{}
+}
+
+type PartnerConfigAWS struct {
+	AmazonIPAddress   *string
+	AWSConnectionName *string
+	AWSAccountID      *string
+	BGPAuthKey        *string
+	CustomerASN       *uint64
+	CustomerIPAddress *string
+	Type              *string
+}
+
+func (v *PartnerConfigAWS) connectType() string {
+	return "AWS"
+}
+
+func (v *PartnerConfigAWS) toPayload() interface{} {
+	return &vxcCreatePayloadPartnerConfigAWS{
+		AmazonIpAddress:   v.AmazonIPAddress,
+		Asn:               v.CustomerASN,
+		AuthKey:           v.BGPAuthKey,
+		ConnectType:       String(v.connectType()),
+		CustomerIpAddress: v.CustomerIPAddress,
+		Name:              v.AWSConnectionName,
+		OwnerAccount:      v.AWSAccountID,
+		Type:              v.Type,
+	}
+}
+
+type vxcCreatePayloadPartnerConfigAWS struct {
+	// AmazonAsn    *uint64 `json:""`
+	AmazonIpAddress   *string `json:"amazonIpAddress"`
+	Asn               *uint64 `json:"asn"`
+	AuthKey           *string `json:"authKey"`
+	ConnectType       *string `json:"connectType"`
+	CustomerIpAddress *string `json:"customerIpAddress"`
+	Name              *string `json:"name"`
+	OwnerAccount      *string `json:"ownerAccount"`
+	// Prefixes     *string `json:""`
+	Type *string `json:"type"`
+}
 
 type CloudVxcCreateInput struct {
 	InvoiceReference *string
 	Name             *string
-	PartnerConfig    *PartnerConfig
+	PartnerConfig    PartnerConfig
 	ProductUidA      *string
 	ProductUidB      *string
 	RateLimit        *uint64
@@ -202,7 +245,7 @@ func (v *CloudVxcCreateInput) toPayload() ([]byte, error) {
 	payload := []*vxcCreatePayload{{ProductUid: v.ProductUidA}}
 	av := &vxcCreatePayloadAssociatedVxc{
 		CostCentre:    v.InvoiceReference,
-		PartnerConfig: v.PartnerConfig,
+		PartnerConfig: v.PartnerConfig.toPayload(),
 		ProductName:   v.Name,
 		RateLimit:     v.RateLimit,
 	}
