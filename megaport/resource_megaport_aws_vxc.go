@@ -56,6 +56,11 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"aws_connection_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 			"aws_account_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -141,15 +146,14 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		VlanA:            api.Uint64FromInt(a["vlan"]),
 		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-		PartnerConfig: &api.PartnerConfig{
-			"connectType":       "AWS",
-			"type":              "private",
-			"asn":               b["customer_asn"],
-			"ownerAccount":      b["aws_account_id"],
-			"authKey":           b["bgp_auth_key"],
-			"prefixes":          nil,
-			"customerIpAddress": nil,
-			"amazonIpAddress":   nil,
+		PartnerConfig: &api.PartnerConfigAWS{
+			AWSConnectionName: api.String(d.Get("aws_connection_name")),
+			AWSAccountID:      api.String(b["aws_account_id"]),
+			AmazonIPAddress:   api.String(d.Get("amazon_ip_address")),
+			BGPAuthKey:        api.String(b["bgp_auth_key"]),
+			CustomerASN:       api.Uint64(b["customer_asn"]),
+			CustomerIPAddress: api.String(d.Get("customer_ip_address")),
+			Type:              api.String(d.Get("type")),
 		},
 	})
 	if err != nil {
