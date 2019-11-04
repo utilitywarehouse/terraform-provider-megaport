@@ -288,7 +288,7 @@ type ProductAssociatedVxcApproval struct {
 }
 
 type ProductAssociatedVxcResources struct {
-	AwsVirtualInterface ProductAssociatedVxcResourcesAwsVirtualInterface `json:"aws_virtualinterface"`
+	AwsVirtualInterface ProductAssociatedVxcResourcesAwsVirtualInterface `json:"csp_connection"`
 }
 
 type ProductAssociatedVxcResourcesAwsVirtualInterface struct {
