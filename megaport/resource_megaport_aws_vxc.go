@@ -144,10 +144,10 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		PartnerConfig: &api.PartnerConfigAWS{
 			AWSConnectionName: api.String(""),
 			AWSAccountID:      api.String(b["aws_account_id"]),
-			AmazonIPAddress:   nil,
+			AmazonIPAddress:   api.String(d.Get("amazon_ip_address")),
 			BGPAuthKey:        api.String(b["bgp_auth_key"]),
 			CustomerASN:       api.Uint64(b["customer_asn"]),
-			CustomerIPAddress: nil,
+			CustomerIPAddress: api.String(d.Get("customer_ip_address")),
 			Type:              api.String("private"),
 		},
 	})
