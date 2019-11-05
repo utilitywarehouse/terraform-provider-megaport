@@ -140,23 +140,37 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
-	uid, err := cfg.Client.CreateCloudVxc(&api.CloudVxcCreateInput{
-		ProductUidA:      api.String(a["product_uid"]),
-		ProductUidB:      api.String(b["product_uid"]),
-		Name:             api.String(d.Get("name")),
-		InvoiceReference: api.String(d.Get("invoice_reference")),
-		VlanA:            api.Uint64FromInt(a["vlan"]),
-		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-		PartnerConfig: &api.PartnerConfigAWS{
-			AWSConnectionName: api.String(d.Get("aws_connection_name")),
-			AWSAccountID:      api.String(b["aws_account_id"]),
-			AmazonIPAddress:   api.String(d.Get("amazon_ip_address")),
-			BGPAuthKey:        api.String(b["bgp_auth_key"]),
-			CustomerASN:       api.Uint64(b["customer_asn"]),
-			CustomerIPAddress: api.String(d.Get("customer_ip_address")),
-			Type:              api.String(d.Get("type")),
-		},
-	})
+	input := &api.CloudVxcCreateInput{
+		ProductUidA: api.String(a["product_uid"]),
+		ProductUidB: api.String(b["product_uid"]),
+		Name:        api.String(d.Get("name")),
+		RateLimit:   api.Uint64FromInt(d.Get("rate_limit")),
+	}
+	if v, ok := d.GetOk("invoice_reference"); ok {
+		input.InvoiceReference = api.String(v)
+	}
+	if v := a["vlan"]; v != 0 {
+		input.VlanA = api.Uint64FromInt(a["vlan"])
+	}
+	inputPartnerConfig := &api.PartnerConfigAWS{
+		AWSAccountID: api.String(b["aws_account_id"]),
+		CustomerASN:  api.Uint64FromInt(b["customer_asn"]),
+		Type:         api.String(b["type"]),
+	}
+	if v := b["aws_connection_name"]; v != "" {
+		inputPartnerConfig.AWSConnectionName = api.String(v)
+	}
+	if v := b["amazon_ip_address"]; v != "" {
+		inputPartnerConfig.AmazonIPAddress = api.String(v)
+	}
+	if v := b["bgp_auth_key"]; v != "" {
+		inputPartnerConfig.BGPAuthKey = api.String(v)
+	}
+	if v := b["customer_ip_address"]; v != "" {
+		inputPartnerConfig.CustomerIPAddress = api.String(v)
+	}
+	input.PartnerConfig = inputPartnerConfig
+	uid, err := cfg.Client.CreateCloudVxc(input)
 	if err != nil {
 		return err
 	}
