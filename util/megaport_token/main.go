@@ -24,7 +24,7 @@ func main() {
 			if token == "" {
 				log.Fatal("To reset the token, please export MEGAPORT_TOKEN with your current token")
 			}
-			c := api.NewClient(api.EndpointProduction)
+			c := api.NewClient(api.EndpointStaging)
 			c.Token = token
 			if err := c.Logout(); err != nil {
 				log.Fatal(err)
