@@ -30,7 +30,9 @@ func Provider() terraform.ResourceProvider {
 			"api_endpoint": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  api.EndpointProduction,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"MEGAPORT_API_ENDPOINT",
+				}, api.EndpointProduction),
 			},
 		},
 
@@ -47,12 +49,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
-			endpoint := api.EndpointProduction
-			if e, ok := d.GetOk("api_endpoint"); ok {
-				endpoint = e.(string)
-			}
-			client := api.NewClient(endpoint)
-			log.Printf("initialised megaport api client at %s", endpoint)
+			client := api.NewClient(d.Get("api_endpoint").(string))
+			fmt.Printf("initialised megaport api client at %s\n", client.BaseURL)
 			if v, ok := d.GetOk("token"); ok { // TODO: is it an error if not found?
 				client.Token = v.(string)
 			}
