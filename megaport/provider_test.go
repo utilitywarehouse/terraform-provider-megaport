@@ -46,9 +46,10 @@ func testAccPreCheck(t *testing.T) {
 	if os.Getenv("MEGAPORT_TOKEN") == "" {
 		t.Fatal("MEGAPORT_TOKEN must be set for acceptance tests")
 	}
-	err := testAccProvider.Configure(terraform.NewResourceConfigRaw(
-		map[string]interface{}{"api_endpoint": api.EndpointStaging}))
-	if err != nil {
+	if err := os.Setenv("MEGAPORT_API_ENDPOINT", api.EndpointStaging); err != nil {
+		t.Fatal(err)
+	}
+	if err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil)); err != nil {
 		t.Fatal(err)
 	}
 }
