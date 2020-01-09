@@ -63,3 +63,16 @@ func flattenVxcEnd(v api.ProductAssociatedVxcEnd) []interface{} {
 		"vlan":        int(v.Vlan),
 	}}
 }
+
+func isResourceDeleted(provisioningStatus string) bool {
+	switch provisioningStatus {
+	case api.ProductStatusCancelled:
+		fallthrough
+	case api.ProductStatusCancelledParent:
+		fallthrough
+	case api.ProductStatusDecommissioned:
+		return true
+	default:
+		return false
+	}
+}

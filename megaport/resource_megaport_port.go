@@ -91,10 +91,11 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	uid, err := cfg.Client.CreatePort(&api.PortCreateInput{
-		Name:       api.String(d.Get("name")),
-		LocationId: api.Uint64FromInt(d.Get("location_id")),
-		Speed:      api.Uint64FromInt(d.Get("speed")),
-		Term:       api.Uint64FromInt(d.Get("term")),
+		LocationId:            api.Uint64FromInt(d.Get("location_id")),
+		MarketplaceVisibility: api.Bool(d.Get("marketplace_visibility") == "public"),
+		Name:                  api.String(d.Get("name")),
+		Speed:                 api.Uint64FromInt(d.Get("speed")),
+		Term:                  api.Uint64FromInt(d.Get("term")),
 	})
 	if err != nil {
 		return err
