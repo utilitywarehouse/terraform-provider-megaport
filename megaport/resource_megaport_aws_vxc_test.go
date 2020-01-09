@@ -57,7 +57,7 @@ func testAccCheckResourceDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		if v != nil && v.ProvisioningStatus != api.ProductStatusDecommissioned {
+		if v != nil && !isResourceDeleted(v.ProvisioningStatus) {
 			return fmt.Errorf("testAccCheckResourceDestroy: %s has not been destroyed", rs.Primary.ID)
 		}
 	}
