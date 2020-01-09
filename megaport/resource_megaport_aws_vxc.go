@@ -56,6 +56,10 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"connected_product_uid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"aws_connection_name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -93,16 +97,17 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 	}
 }
 
-func flattenVxcEndAws(v api.ProductAssociatedVxcEnd, r api.ProductAssociatedVxcResources) []interface{} {
+func flattenVxcEndAws(configProductUid string, v api.ProductAssociatedVxcEnd, r api.ProductAssociatedVxcResources) []interface{} {
 	return []interface{}{map[string]interface{}{
-		"product_uid":         v.ProductUid,
-		"aws_connection_name": r.AwsVirtualInterface.Name,
-		"aws_account_id":      r.AwsVirtualInterface.OwnerAccount,
-		"aws_ip_address":      r.AwsVirtualInterface.AmazonIpAddress,
-		"bgp_auth_key":        r.AwsVirtualInterface.AuthKey,
-		"customer_asn":        int(r.AwsVirtualInterface.Asn),
-		"customer_ip_address": r.AwsVirtualInterface.CustomerIpAddress,
-		"type":                strings.ToLower(r.AwsVirtualInterface.Type),
+		"product_uid":           configProductUid,
+		"connected_product_uid": v.ProductUid,
+		"aws_connection_name":   r.AwsVirtualInterface.Name,
+		"aws_account_id":        r.AwsVirtualInterface.OwnerAccount,
+		"aws_ip_address":        r.AwsVirtualInterface.AmazonIpAddress,
+		"bgp_auth_key":          r.AwsVirtualInterface.AuthKey,
+		"customer_asn":          int(r.AwsVirtualInterface.Asn),
+		"customer_ip_address":   r.AwsVirtualInterface.CustomerIpAddress,
+		"type":                  strings.ToLower(r.AwsVirtualInterface.Type),
 	}}
 }
 
@@ -127,7 +132,8 @@ func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 	if err := d.Set("a_end", flattenVxcEnd(p.AEnd)); err != nil {
 		return err
 	}
-	if err := d.Set("b_end", flattenVxcEndAws(p.BEnd, p.Resources)); err != nil {
+	puid := d.Get("b_end").([]interface{})[0].(map[string]interface{})["product_uid"].(string)
+	if err := d.Set("b_end", flattenVxcEndAws(puid, p.BEnd, p.Resources)); err != nil {
 		return err
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
