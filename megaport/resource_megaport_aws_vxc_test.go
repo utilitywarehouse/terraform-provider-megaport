@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -29,39 +28,6 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckResourceExists(n string, vxc *api.ProductAssociatedVxc) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		cfg := testAccProvider.Meta().(*Config)
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("testAccCheckResourceExists: cannot find %q", n)
-		}
-		v, err := cfg.Client.GetCloudVxc(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		*vxc = *v
-		return nil
-	}
-}
-
-func testAccCheckResourceDestroy(s *terraform.State) error {
-	cfg := testAccProvider.Meta().(*Config)
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "megaport_aws_vxc" { // TODO do we want to check all resources?
-			continue
-		}
-		v, err := cfg.Client.GetCloudVxc(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if v != nil && !isResourceDeleted(v.ProvisioningStatus) {
-			return fmt.Errorf("testAccCheckResourceDestroy: %s has not been destroyed", rs.Primary.ID)
-		}
-	}
-	return nil
 }
 
 func testAccAwsVxcBasicConfig(name, accountId string, asn uint64) string {
