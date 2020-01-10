@@ -2,11 +2,19 @@ package megaport
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
+)
+
+var (
+	testAccConfigTemplates = &template.Template{}
 )
 
 func testAccCheckResourceExists(n string, o interface{}) resource.TestCheckFunc {
@@ -35,6 +43,7 @@ func testAccCheckResourceExists(n string, o interface{}) resource.TestCheckFunc 
 		return nil
 	}
 }
+
 func testAccCheckResourceDestroy(s *terraform.State) error {
 	cfg := testAccProvider.Meta().(*Config)
 	for n, rs := range s.RootModule().Resources {
@@ -63,4 +72,62 @@ func testAccCheckResourceDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func testAccNewConfig(name string) (*template.Template, error) {
+	config := ""
+	if err := filepath.Walk(filepath.Join("../examples/", name), func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if f.IsDir() {
+			return nil
+		}
+		r, err := filepath.Match("*.tf", f.Name())
+		if err != nil {
+			return err
+		}
+		if r {
+			c, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			config = config + string(c)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	t, err := testAccConfigTemplates.New(name).Parse(config)
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func testAccGetConfig(name string, values map[string]interface{}) (string, error) {
+	var (
+		t   *template.Template
+		err error
+		cfg = &strings.Builder{}
+	)
+	t = testAccConfigTemplates.Lookup(name)
+	if t == nil {
+		t, err = testAccNewConfig(name)
+		if err != nil {
+			return "", err
+		}
+	}
+	if err := t.Execute(cfg, values); err != nil {
+		return "", err
+	}
+	return cfg.String(), nil
+}
+
+func testAccLogConfig(cfg string) {
+	l := strings.Split(cfg, "\n")
+	for i := range l {
+		l[i] = "      " + l[i]
+	}
+	fmt.Printf("+++ CONFIG:\n%s\n", strings.Join(l, "\n"))
 }
