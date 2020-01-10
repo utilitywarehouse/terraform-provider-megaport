@@ -23,6 +23,7 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 			{
 				Config: testAccAwsVxcBasicConfig(rName, rId, rAsn),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckResourceExists("megaport_port.port", &vxcBefore),
 					testAccCheckResourceExists("megaport_aws_vxc.test", &vxcBefore),
 				),
 			},
