@@ -18,7 +18,8 @@ const (
 // mcr2: virtual = false, type = MCR2
 
 type portCreatePayload struct {
-	CreateDate            *uint64 `json:"createDate,omitempty"`   // TODO: need to fill in? :o
+	CreateDate            *uint64 `json:"createDate,omitempty"` // TODO: need to fill in? :o
+	CostCentre            *string `json:"costCentre"`
 	LagPortCount          *uint64 `json:"lagPortCount,omitempty"` // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
 	LocationId            *uint64 `json:"locationId"`
 	LocationUid           *string `json:"locationUid,omitempty"` // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
@@ -44,6 +45,7 @@ type PortCreateInput struct {
 	Name                  *string
 	Speed                 *uint64
 	Term                  *uint64
+	InvoiceReference      *string
 }
 
 func (v *PortCreateInput) productType() string {
@@ -53,6 +55,7 @@ func (v *PortCreateInput) productType() string {
 func (v *PortCreateInput) toPayload() ([]byte, error) {
 	payload := []*portCreatePayload{{
 		LocationId:            v.LocationId,
+		CostCentre:            v.InvoiceReference,
 		PortSpeed:             v.Speed,
 		ProductName:           v.Name,
 		ProductType:           String(ProductTypePort), // TODO
