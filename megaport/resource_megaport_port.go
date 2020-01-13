@@ -31,10 +31,12 @@ func resourceMegaportPort() *schema.Resource {
 			"speed": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ForceNew: true,
 			},
 			"term": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ForceNew: true,
 			},
 			"invoice_reference": {
 				Type:     schema.TypeString,
@@ -48,7 +50,6 @@ func resourceMegaportPort() *schema.Resource {
 				Set:      schema.HashResource(resourceMegaportPrivateVxc()),
 			},
 			"marketplace_visibility": resourceAttributePrivatePublic(),
-			// TODO: LAG ports
 		},
 	}
 }
