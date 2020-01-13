@@ -1,10 +1,10 @@
-data "megaport_location" "port" {
+data "megaport_location" "foo" {
   name_regex = "{{ .location }}"
 }
 
-resource "megaport_port" "test" {
+resource "megaport_port" "foo" {
   name        = "terraform_acctest_{{ .uid }}"
-  location_id = data.megaport_location.port.id
+  location_id = data.megaport_location.foo.id
   speed       = 1000
   term        = 1
 }
