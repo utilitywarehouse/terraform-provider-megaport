@@ -23,7 +23,7 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	testAccLogConfig(cfg)
+	testAccLogConfig(0, cfg)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

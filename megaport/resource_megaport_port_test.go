@@ -9,17 +9,28 @@ import (
 )
 
 func TestAccMegaportPort_basic(t *testing.T) {
-	var portBefore api.Product
+	var port, portUpdated, portNew api.Product
 	rName := "t" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-
-	cfg, err := testAccGetConfig("megaport_port_basic", map[string]interface{}{
+	configValues := map[string]interface{}{
 		"uid":      rName,
 		"location": "Telehouse North",
-	})
+	}
+
+	cfg, err := testAccGetConfig("megaport_port_basic", configValues)
 	if err != nil {
 		t.Fatal(err)
 	}
-	testAccLogConfig(cfg)
+	testAccLogConfig(0, cfg)
+	cfgUpdate, err := testAccGetConfig("megaport_port_basic_update", configValues)
+	if err != nil {
+		t.Fatal(err)
+	}
+	testAccLogConfig(1, cfgUpdate)
+	cfgForceNew, err := testAccGetConfig("megaport_port_basic_forcenew", configValues)
+	if err != nil {
+		t.Fatal(err)
+	}
+	testAccLogConfig(2, cfgForceNew)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,9 +40,49 @@ func TestAccMegaportPort_basic(t *testing.T) {
 			{
 				Config: cfg,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckResourceExists("megaport_port.test", &portBefore),
+					testAccCheckResourceExists("megaport_port.foo", &port),
+					resource.TestCheckResourceAttr("megaport_port.foo", "name", "terraform_acctest_"+rName),
+					resource.TestCheckResourceAttr("megaport_port.foo", "speed", "1000"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "term", "1"),
+					resource.TestCheckResourceAttrPair("megaport_port.foo", "location_id", "data.megaport_location.foo", "id"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "invoice_reference", ""),
+					resource.TestCheckNoResourceAttr("megaport_port.foo", "associated_vxcs"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "marketplace_visibility", "private"),
+				),
+			},
+			{
+				Config: cfgUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckResourceExists("megaport_port.foo", &portUpdated),
+					resource.TestCheckResourceAttr("megaport_port.foo", "name", "terraform_acctest_"+rName),
+					resource.TestCheckResourceAttr("megaport_port.foo", "speed", "1000"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "term", "1"),
+					resource.TestCheckResourceAttrPair("megaport_port.foo", "location_id", "data.megaport_location.foo", "id"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "invoice_reference", rName),
+					resource.TestCheckNoResourceAttr("megaport_port.foo", "associated_vxcs"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "marketplace_visibility", "public"),
+				),
+			},
+			{
+				Config: cfgForceNew,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckResourceExists("megaport_port.foo", &portNew),
+					resource.TestCheckResourceAttr("megaport_port.foo", "name", "terraform_acctest_"+rName),
+					resource.TestCheckResourceAttr("megaport_port.foo", "speed", "10000"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "term", "12"),
+					resource.TestCheckResourceAttrPair("megaport_port.foo", "location_id", "data.megaport_location.foo", "id"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "invoice_reference", rName),
+					resource.TestCheckNoResourceAttr("megaport_port.foo", "associated_vxcs"),
+					resource.TestCheckResourceAttr("megaport_port.foo", "marketplace_visibility", "public"),
 				),
 			},
 		},
 	})
+
+	if port.ProductUid != portUpdated.ProductUid {
+		t.Errorf("TestAccMegaportPort_basic: expected the port to be updated but the resource ids differ")
+	}
+	if port.ProductUid == portNew.ProductUid {
+		t.Errorf("TestAccMegaportPort_basic: expected the port to be recreated but the resource ids are identical")
+	}
 }
