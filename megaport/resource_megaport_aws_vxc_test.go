@@ -23,7 +23,7 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	testAccLogConfig(cfg)
+	testAccLogConfig(0, cfg)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,8 +33,8 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 			{
 				Config: cfg,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckResourceExists("megaport_port.port", &vxcBefore),
-					testAccCheckResourceExists("megaport_aws_vxc.test", &vxcBefore),
+					testAccCheckResourceExists("megaport_port.foo", &vxcBefore),
+					testAccCheckResourceExists("megaport_aws_vxc.foo", &vxcBefore),
 				),
 			},
 		},

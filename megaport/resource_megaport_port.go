@@ -31,10 +31,12 @@ func resourceMegaportPort() *schema.Resource {
 			"speed": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ForceNew: true,
 			},
 			"term": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ForceNew: true,
 			},
 			"invoice_reference": {
 				Type:     schema.TypeString,
@@ -48,7 +50,6 @@ func resourceMegaportPort() *schema.Resource {
 				Set:      schema.HashResource(resourceMegaportPrivateVxc()),
 			},
 			"marketplace_visibility": resourceAttributePrivatePublic(),
-			// TODO: LAG ports
 		},
 	}
 }
@@ -73,6 +74,9 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 	if err := d.Set("term", p.ContractTermMonths); err != nil {
 		return err
 	}
+	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
+		return err
+	}
 	if err := d.Set("associated_vxcs", schema.NewSet(schema.HashResource(resourceMegaportPrivateVxc()), flattenVxcList(p.AssociatedVxcs))); err != nil {
 		return err
 	}
@@ -84,7 +88,6 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 			return err
 		}
 	}
-	//d.Set("invoice_reference", p.) // TODO: is this even exported?
 	return nil
 }
 
@@ -96,6 +99,7 @@ func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 		Name:                  api.String(d.Get("name")),
 		Speed:                 api.Uint64FromInt(d.Get("speed")),
 		Term:                  api.Uint64FromInt(d.Get("term")),
+		InvoiceReference:      api.String(d.Get("invoice_reference")),
 	})
 	if err != nil {
 		return err
@@ -107,10 +111,10 @@ func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	if err := cfg.Client.UpdatePort(&api.PortUpdateInput{
-		InvoiceReference: api.String(d.Get("invoice_reference")),
-		Name:             api.String(d.Get("name")),
-		ProductUid:       api.String(d.Id()),
-		//RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
+		InvoiceReference:      api.String(d.Get("invoice_reference")),
+		Name:                  api.String(d.Get("name")),
+		ProductUid:            api.String(d.Id()),
+		MarketplaceVisibility: api.Bool(d.Get("marketplace_visibility") == "public"),
 	}); err != nil {
 		return err
 	}

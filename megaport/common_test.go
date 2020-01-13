@@ -124,10 +124,10 @@ func testAccGetConfig(name string, values map[string]interface{}) (string, error
 	return cfg.String(), nil
 }
 
-func testAccLogConfig(cfg string) {
+func testAccLogConfig(step int, cfg string) {
 	l := strings.Split(cfg, "\n")
 	for i := range l {
 		l[i] = "      " + l[i]
 	}
-	fmt.Printf("+++ CONFIG:\n%s\n", strings.Join(l, "\n"))
+	fmt.Printf("+++ CONFIG (step %d):\n%s\n", step, strings.Join(l, "\n"))
 }

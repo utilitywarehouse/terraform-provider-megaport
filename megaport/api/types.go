@@ -102,6 +102,7 @@ type Product struct {
 	ContractStartDate  uint64
 	ContractEndDate    uint64
 	ContractTermMonths uint64
+	CostCentre         string
 	CreateDate         uint64
 	CreatedBy          string
 	// LagId // TODO: haven't seen a value other than null
