@@ -105,7 +105,7 @@ func testAccNewConfig(name string) (*template.Template, error) {
 	return t, nil
 }
 
-func testAccGetConfig(name string, values map[string]interface{}) (string, error) {
+func testAccGetConfig(name string, values map[string]interface{}, step int) (string, error) {
 	var (
 		t   *template.Template
 		err error
@@ -121,13 +121,13 @@ func testAccGetConfig(name string, values map[string]interface{}) (string, error
 	if err := t.Execute(cfg, values); err != nil {
 		return "", err
 	}
-	return cfg.String(), nil
-}
-
-func testAccLogConfig(step int, cfg string) {
-	l := strings.Split(cfg, "\n")
-	for i := range l {
-		l[i] = "      " + l[i]
+	ret := cfg.String()
+	if step > -1 {
+		l := strings.Split(ret, "\n")
+		for i := range l {
+			l[i] = "      " + l[i]
+		}
+		fmt.Printf("+++ CONFIG %q (step %d):\n%s\n", name, step, strings.Join(l, "\n"))
 	}
-	fmt.Printf("+++ CONFIG (step %d):\n%s\n", step, strings.Join(l, "\n"))
+	return ret, nil
 }

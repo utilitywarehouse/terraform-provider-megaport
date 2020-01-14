@@ -14,16 +14,16 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	rId := acctest.RandStringFromCharSet(12, "012346789")
 	rAsn := uint64(acctest.RandIntRange(1, 65535))
 
-	cfg, err := testAccGetConfig("megaport_aws_vxc_basic", map[string]interface{}{
+	configValues := map[string]interface{}{
 		"uid":            rName,
 		"location":       "Equinix LD5",
 		"aws_account_id": rId,
 		"customer_asn":   rAsn,
-	})
+	}
+	cfg, err := testAccGetConfig("megaport_aws_vxc_basic", configValues, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	testAccLogConfig(0, cfg)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
