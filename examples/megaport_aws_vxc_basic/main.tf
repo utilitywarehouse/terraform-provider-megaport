@@ -22,7 +22,6 @@ resource "megaport_port" "foo" {
 resource "megaport_aws_vxc" "foo" {
   name              = "terraform_acctest_{{ .uid }}"
   rate_limit        = 100
-  invoice_reference = "terraform_acctest_ref_{{ .uid }}"
 
   a_end {
     product_uid = megaport_port.foo.id

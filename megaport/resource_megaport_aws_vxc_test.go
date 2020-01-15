@@ -1,6 +1,7 @@
 package megaport
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -35,6 +36,14 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckResourceExists("megaport_port.foo", &vxcBefore),
 					testAccCheckResourceExists("megaport_aws_vxc.foo", &vxcBefore),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "name", "terraform_acctest_"+rName),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "rate_limit", "100"),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "invoice_reference", ""),
+					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "a_end.0.product_uid", "megaport_port.foo", "id"),
+					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "b_end.0.product_uid", "data.megaport_partner_port.aws", "id"),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_account_id", rId),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_asn", strconv.Itoa(int(rAsn))),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.type", "private"),
 				),
 			},
 		},
