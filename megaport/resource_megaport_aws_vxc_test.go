@@ -25,6 +25,10 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	cfgUpdate, err := testAccGetConfig("megaport_aws_vxc_basic_update", configValues, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,6 +43,21 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "name", "terraform_acctest_"+rName),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "rate_limit", "100"),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "invoice_reference", ""),
+					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "a_end.0.product_uid", "megaport_port.foo", "id"),
+					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "b_end.0.product_uid", "data.megaport_partner_port.aws", "id"),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_account_id", rId),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_asn", strconv.Itoa(int(rAsn))),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.type", "private"),
+				),
+			},
+			{
+				Config: cfgUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckResourceExists("megaport_port.foo", &vxcBefore),
+					testAccCheckResourceExists("megaport_aws_vxc.foo", &vxcBefore),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "name", "terraform_acctest_"+rName),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "rate_limit", "1000"),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "invoice_reference", rName),
 					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "a_end.0.product_uid", "megaport_port.foo", "id"),
 					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "b_end.0.product_uid", "data.megaport_partner_port.aws", "id"),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_account_id", rId),

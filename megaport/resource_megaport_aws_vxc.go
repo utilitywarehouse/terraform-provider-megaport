@@ -3,7 +3,9 @@ package megaport
 import (
 	"log"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
@@ -181,13 +183,16 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	d.SetId(*uid)
+	if err := waitUntilVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
+		return err
+	}
 	return resourceMegaportAwsVxcRead(d, m)
 }
 
 func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
-	//b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
+	//b := d.Get("b_end").([]interface{})[0].(map[string]interface{}) // TODO
 	if err := cfg.Client.UpdateCloudVxc(&api.CloudVxcUpdateInput{
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		Name:             api.String(d.Get("name")),
@@ -210,4 +215,32 @@ func resourceMegaportAwsVxcDelete(d *schema.ResourceData, m interface{}) error {
 		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
 	}
 	return nil
+}
+
+func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+	scc := &resource.StateChangeConf{
+		Pending:    []string{api.ProductStatusDeployable},
+		Target:     []string{api.ProductStatusConfigured, api.ProductStatusLive},
+		Refresh:    resourceMegaportAwsVxcStateRefreshFunc(client, productUid),
+		Timeout:    timeout,
+		MinTimeout: 10 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	log.Printf("[INFO] Waiting for VXC (%s) to be available", productUid)
+	_, err := scc.WaitForState()
+	return err
+}
+
+func resourceMegaportAwsVxcStateRefreshFunc(client *api.Client, uid string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		v, err := client.GetCloudVxc(uid)
+		if err != nil {
+			log.Printf("Error retrieving VXC while waiting for setup to finish: %v", err)
+			return nil, "", err
+		}
+		if v == nil {
+			return nil, "", nil
+		}
+		return v, v.ProvisioningStatus, nil
+	}
 }
