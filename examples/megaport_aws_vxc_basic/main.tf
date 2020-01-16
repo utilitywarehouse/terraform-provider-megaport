@@ -25,6 +25,7 @@ resource "megaport_aws_vxc" "foo" {
 
   a_end {
     product_uid = megaport_port.foo.id
+    vlan        = 567
   }
 
   b_end {

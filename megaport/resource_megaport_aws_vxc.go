@@ -193,13 +193,20 @@ func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	//b := d.Get("b_end").([]interface{})[0].(map[string]interface{}) // TODO
-	if err := cfg.Client.UpdateCloudVxc(&api.CloudVxcUpdateInput{
+	input := &api.CloudVxcUpdateInput{
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		Name:             api.String(d.Get("name")),
 		ProductUid:       api.String(d.Id()),
 		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
 		VlanA:            api.Uint64FromInt(a["vlan"]),
-	}); err != nil {
+	}
+	if err := cfg.Client.UpdateCloudVxc(input); err != nil {
+		return err
+	}
+	if err := waitUntilVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+		return err
+	}
+	if err := waitUntilVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
 		return err
 	}
 	return resourceMegaportAwsVxcRead(d, m)
@@ -243,4 +250,40 @@ func resourceMegaportAwsVxcStateRefreshFunc(client *api.Client, uid string) reso
 		}
 		return v, v.ProvisioningStatus, nil
 	}
+}
+
+func waitUntilVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput, timeout time.Duration) error {
+	scc := &resource.StateChangeConf{
+		Pending: []string{"PENDING"},
+		Target:  []string{"UPDATED"},
+		Refresh: func() (interface{}, string, error) {
+			v, err := client.GetCloudVxc(*input.ProductUid)
+			if err != nil {
+				log.Printf("Error retrieving VXC while waiting for setup to finish: %v", err)
+				return nil, "", err
+			}
+			if v == nil {
+				return nil, "", nil
+			}
+			if v.CostCentre != *input.InvoiceReference {
+				return nil, "PENDING", nil
+			}
+			if v.ProductName != *input.Name {
+				return nil, "PENDING", nil
+			}
+			if v.RateLimit != *input.RateLimit {
+				return nil, "PENDING", nil
+			}
+			if v.AEnd.Vlan != *input.VlanA {
+				return nil, "PENDING", nil
+			}
+			return v, "UPDATED", nil
+		},
+		Timeout:    timeout,
+		MinTimeout: 10 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	log.Printf("[INFO] Waiting for VXC (%s) to be available", *input.ProductUid)
+	_, err := scc.WaitForState()
+	return err
 }
