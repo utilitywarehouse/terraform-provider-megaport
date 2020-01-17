@@ -1,6 +1,7 @@
 package megaport
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -32,11 +33,25 @@ func resourceMegaportPort() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: func(v interface{}, k string) (warns []string, errs []error) {
+					vv := v.(int)
+					if vv != 1000 && vv != 10000 && vv != 100000 {
+						errs = append(errs, fmt.Errorf("%q must be 1000, 10000 or 100000 (Mbps), subject to availability, got %d", k, vv))
+					}
+					return
+				},
 			},
 			"term": {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: func(v interface{}, k string) (warns []string, errs []error) {
+					vv := v.(int)
+					if vv != 1 && vv != 12 && vv != 24 && vv != 36 {
+						errs = append(errs, fmt.Errorf("%q must be 1, 12, 24 or 36, got %d", k, vv))
+					}
+					return
+				},
 			},
 			"invoice_reference": {
 				Type:     schema.TypeString,

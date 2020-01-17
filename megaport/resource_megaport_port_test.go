@@ -15,22 +15,18 @@ func TestAccMegaportPort_basic(t *testing.T) {
 		"uid":      rName,
 		"location": "Telehouse North",
 	}
-
-	cfg, err := testAccGetConfig("megaport_port_basic", configValues)
+	cfg, err := testAccGetConfig("megaport_port_basic", configValues, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	testAccLogConfig(0, cfg)
-	cfgUpdate, err := testAccGetConfig("megaport_port_basic_update", configValues)
+	cfgUpdate, err := testAccGetConfig("megaport_port_basic_update", configValues, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	testAccLogConfig(1, cfgUpdate)
-	cfgForceNew, err := testAccGetConfig("megaport_port_basic_forcenew", configValues)
+	cfgForceNew, err := testAccGetConfig("megaport_port_basic_forcenew", configValues, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	testAccLogConfig(2, cfgForceNew)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

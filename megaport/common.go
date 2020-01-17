@@ -45,14 +45,14 @@ func resourceMegaportVxcEndElem() *schema.Resource {
 }
 
 func validateCIDRAddress(v interface{}, k string) (warns []string, errs []error) {
-	vv := v.(string)
-	_, ipnet, err := net.ParseCIDR(vv)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("%q is not a valid CIDR: %s", k, err))
+	vv, ok := v.(string)
+	if !ok {
+		errs = append(errs, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
-	if ipnet == nil || vv != ipnet.String() {
-		errs = append(errs, fmt.Errorf("%q is not a valid CIDR", k))
+	_, _, err := net.ParseCIDR(vv)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("expected %q to be a valid IPv4 CIDR, got %v: %v", k, vv, err))
 	}
 	return
 }
@@ -75,4 +75,12 @@ func isResourceDeleted(provisioningStatus string) bool {
 	default:
 		return false
 	}
+}
+
+func compareNillableStrings(a *string, b string) bool {
+	return a == nil || *a == b
+}
+
+func compareNillableUints(a *uint64, b uint64) bool {
+	return a == nil || *a == b
 }

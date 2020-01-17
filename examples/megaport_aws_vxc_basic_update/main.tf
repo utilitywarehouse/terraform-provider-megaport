@@ -21,17 +21,22 @@ resource "megaport_port" "foo" {
 
 resource "megaport_aws_vxc" "foo" {
   name              = "terraform_acctest_{{ .uid }}"
-  rate_limit        = 100
+  rate_limit        = 1000
+  invoice_reference = "{{ .uid }}"
 
   a_end {
     product_uid = megaport_port.foo.id
-    vlan        = 567
+    vlan        = 568
   }
 
   b_end {
-    product_uid    = data.megaport_partner_port.aws.id
-    aws_account_id = "{{ .aws_account_id }}"
-    customer_asn   = {{ .customer_asn }}
-    type           = "private"
+    product_uid         = data.megaport_partner_port.aws.id
+    aws_account_id      = "{{ .aws_account_id }}"
+    aws_connection_name = "{{ .uid }}"
+    aws_ip_address      = "{{ .aws_ip_address }}"
+    bgp_auth_key        = "{{ .uid }}"
+    customer_asn        = {{ .customer_asn }}
+    customer_ip_address = "{{ .customer_ip_address }}"
+    type                = "private"
   }
 }

@@ -18,9 +18,12 @@ const (
 	Version   = "0.1"
 	UserAgent = "megaport-api-go-client/" + Version
 
-	ProductStatusDecommissioned  = "DECOMMISSIONED"
 	ProductStatusCancelled       = "CANCELLED"
 	ProductStatusCancelledParent = "CANCELLED_PARENT"
+	ProductStatusConfigured      = "CONFIGURED"
+	ProductStatusDecommissioned  = "DECOMMISSIONED"
+	ProductStatusDeployable      = "DEPLOYABLE"
+	ProductStatusLive            = "LIVE"
 )
 
 var (
