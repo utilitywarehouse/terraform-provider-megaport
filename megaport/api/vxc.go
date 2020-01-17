@@ -132,11 +132,13 @@ func (v *PrivateVxcCreateInput) toPayload() ([]byte, error) {
 }
 
 type vxcUpdatePayload struct {
-	AEndVlan   *uint64 `json:"aEndVlan,omitempty"`
-	BEndVlan   *uint64 `json:"bEndVlan,omitempty"`
-	CostCentre *string `json:"costCentre,omitempty"`
-	Name       *string `json:"name,omitempty"`
-	RateLimit  *uint64 `json:"rateLimit,omitempty"`
+	AEndVlan   *uint64     `json:"aEndVlan,omitempty"`
+	BEndVlan   *uint64     `json:"bEndVlan,omitempty"`
+	CostCentre *string     `json:"costCentre,omitempty"`
+	Name       *string     `json:"name,omitempty"`
+	BEndConfig interface{} `json:"bEndConfig,omitempty"`
+	RateLimit  *uint64     `json:"rateLimit,omitempty"`
+	// SecondaryName *string     `json:"secondaryName,omitempty"`
 }
 
 type PrivateVxcUpdateInput struct {
@@ -219,15 +221,16 @@ func (v *PartnerConfigAWS) toPayload() interface{} {
 }
 
 type vxcCreatePayloadPartnerConfigAWS struct {
-	// AmazonAsn    *uint64 `json:",omitempty"`
-	AmazonIpAddress   *string `json:"amazonIpAddress,omitempty"`
-	Asn               *uint64 `json:"asn,omitempty"`
-	AuthKey           *string `json:"authKey,omitempty"`
-	ConnectType       *string `json:"connectType,omitempty"`
+	// AmazonAsn         *uint64 `json:",omitempty"`
+	AmazonIpAddress *string `json:"amazonIpAddress,omitempty"`
+	Asn             *uint64 `json:"asn,omitempty"`
+	AuthKey         *string `json:"authKey,omitempty"`
+	ConnectType     *string `json:"connectType,omitempty"`
+	// Complete          *bool   `json:"complete,omitempty"`
 	CustomerIpAddress *string `json:"customerIpAddress,omitempty"`
 	Name              *string `json:"name,omitempty"`
 	OwnerAccount      *string `json:"ownerAccount,omitempty"`
-	// Prefixes     *string `json:",omitempty"`
+	// Prefixes          *string `json:",omitempty"`
 	Type *string `json:"type,omitempty"`
 }
 
@@ -270,6 +273,7 @@ type CloudVxcUpdateInput struct {
 	InvoiceReference *string
 	Name             *string
 	ProductUid       *string
+	PartnerConfig    PartnerConfig
 	RateLimit        *uint64
 	VlanA            *uint64
 }
@@ -283,6 +287,7 @@ func (v *CloudVxcUpdateInput) toPayload() ([]byte, error) {
 		AEndVlan:   v.VlanA,
 		CostCentre: v.InvoiceReference,
 		Name:       v.Name,
+		BEndConfig: v.PartnerConfig.toPayload(),
 		RateLimit:  v.RateLimit,
 	}
 	return json.Marshal(payload)

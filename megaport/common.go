@@ -76,3 +76,11 @@ func isResourceDeleted(provisioningStatus string) bool {
 		return false
 	}
 }
+
+func compareNillableStrings(a *string, b string) bool {
+	return a == nil || *a == b
+}
+
+func compareNillableUints(a *uint64, b uint64) bool {
+	return a == nil || *a == b
+}

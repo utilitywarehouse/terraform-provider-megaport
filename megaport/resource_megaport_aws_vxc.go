@@ -113,6 +113,27 @@ func flattenVxcEndAws(configProductUid string, v api.ProductAssociatedVxcEnd, r 
 	}}
 }
 
+func expandVxcEndAws(e map[string]interface{}) *api.PartnerConfigAWS {
+	pc := &api.PartnerConfigAWS{
+		AWSAccountID: api.String(e["aws_account_id"]),
+		CustomerASN:  api.Uint64FromInt(e["customer_asn"]),
+		Type:         api.String(e["type"]),
+	}
+	if v := e["aws_connection_name"]; v != "" {
+		pc.AWSConnectionName = api.String(v)
+	}
+	if v := e["aws_ip_address"]; v != "" {
+		pc.AmazonIPAddress = api.String(v)
+	}
+	if v := e["bgp_auth_key"]; v != "" {
+		pc.BGPAuthKey = api.String(v)
+	}
+	if v := e["customer_ip_address"]; v != "" {
+		pc.CustomerIPAddress = api.String(v)
+	}
+	return pc
+}
+
 func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetCloudVxc(d.Id())
@@ -149,10 +170,11 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
 	input := &api.CloudVxcCreateInput{
-		ProductUidA: api.String(a["product_uid"]),
-		ProductUidB: api.String(b["product_uid"]),
-		Name:        api.String(d.Get("name")),
-		RateLimit:   api.Uint64FromInt(d.Get("rate_limit")),
+		ProductUidA:   api.String(a["product_uid"]),
+		ProductUidB:   api.String(b["product_uid"]),
+		Name:          api.String(d.Get("name")),
+		PartnerConfig: expandVxcEndAws(b),
+		RateLimit:     api.Uint64FromInt(d.Get("rate_limit")),
 	}
 	if v, ok := d.GetOk("invoice_reference"); ok {
 		input.InvoiceReference = api.String(v)
@@ -160,30 +182,12 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 	if v := a["vlan"]; v != 0 {
 		input.VlanA = api.Uint64FromInt(a["vlan"])
 	}
-	inputPartnerConfig := &api.PartnerConfigAWS{
-		AWSAccountID: api.String(b["aws_account_id"]),
-		CustomerASN:  api.Uint64FromInt(b["customer_asn"]),
-		Type:         api.String(b["type"]),
-	}
-	if v := b["aws_connection_name"]; v != "" {
-		inputPartnerConfig.AWSConnectionName = api.String(v)
-	}
-	if v := b["amazon_ip_address"]; v != "" {
-		inputPartnerConfig.AmazonIPAddress = api.String(v)
-	}
-	if v := b["bgp_auth_key"]; v != "" {
-		inputPartnerConfig.BGPAuthKey = api.String(v)
-	}
-	if v := b["customer_ip_address"]; v != "" {
-		inputPartnerConfig.CustomerIPAddress = api.String(v)
-	}
-	input.PartnerConfig = inputPartnerConfig
 	uid, err := cfg.Client.CreateCloudVxc(input)
 	if err != nil {
 		return err
 	}
 	d.SetId(*uid)
-	if err := waitUntilVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
+	if err := waitUntilAwsVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
 		return err
 	}
 	return resourceMegaportAwsVxcRead(d, m)
@@ -192,10 +196,11 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
-	//b := d.Get("b_end").([]interface{})[0].(map[string]interface{}) // TODO
+	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
 	input := &api.CloudVxcUpdateInput{
 		InvoiceReference: api.String(d.Get("invoice_reference")),
 		Name:             api.String(d.Get("name")),
+		PartnerConfig:    expandVxcEndAws(b),
 		ProductUid:       api.String(d.Id()),
 		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
 		VlanA:            api.Uint64FromInt(a["vlan"]),
@@ -203,10 +208,10 @@ func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	if err := cfg.Client.UpdateCloudVxc(input); err != nil {
 		return err
 	}
-	if err := waitUntilVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+	if err := waitUntilAwsVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return err
 	}
-	if err := waitUntilVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
+	if err := waitUntilAwsVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
 		return err
 	}
 	return resourceMegaportAwsVxcRead(d, m)
@@ -224,11 +229,21 @@ func resourceMegaportAwsVxcDelete(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+func waitUntilAwsVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
-		Pending:    []string{api.ProductStatusDeployable},
-		Target:     []string{api.ProductStatusConfigured, api.ProductStatusLive},
-		Refresh:    resourceMegaportAwsVxcStateRefreshFunc(client, productUid),
+		Pending: []string{api.ProductStatusDeployable},
+		Target:  []string{api.ProductStatusConfigured, api.ProductStatusLive},
+		Refresh: func() (interface{}, string, error) {
+			v, err := client.GetCloudVxc(productUid) // TODO we can probably use this for any kind of VXC
+			if err != nil {
+				log.Printf("Error retrieving VXC while waiting for setup to finish: %v", err)
+				return nil, "", err
+			}
+			if v == nil {
+				return nil, "", nil
+			}
+			return v, v.ProvisioningStatus, nil
+		},
 		Timeout:    timeout,
 		MinTimeout: 10 * time.Second,
 		Delay:      5 * time.Second,
@@ -238,21 +253,7 @@ func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout tim
 	return err
 }
 
-func resourceMegaportAwsVxcStateRefreshFunc(client *api.Client, uid string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		v, err := client.GetCloudVxc(uid)
-		if err != nil {
-			log.Printf("Error retrieving VXC while waiting for setup to finish: %v", err)
-			return nil, "", err
-		}
-		if v == nil {
-			return nil, "", nil
-		}
-		return v, v.ProvisioningStatus, nil
-	}
-}
-
-func waitUntilVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput, timeout time.Duration) error {
+func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Pending: []string{"PENDING"},
 		Target:  []string{"UPDATED"},
@@ -265,16 +266,38 @@ func waitUntilVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput, t
 			if v == nil {
 				return nil, "", nil
 			}
-			if v.CostCentre != *input.InvoiceReference {
+			if !compareNillableStrings(input.InvoiceReference, v.CostCentre) {
 				return nil, "PENDING", nil
 			}
-			if v.ProductName != *input.Name {
+			if !compareNillableStrings(input.Name, v.ProductName) {
 				return nil, "PENDING", nil
 			}
-			if v.RateLimit != *input.RateLimit {
+			if !compareNillableUints(input.RateLimit, v.RateLimit) {
 				return nil, "PENDING", nil
 			}
-			if v.AEnd.Vlan != *input.VlanA {
+			if !compareNillableUints(input.VlanA, v.AEnd.Vlan) {
+				return nil, "PENDING", nil
+			}
+			pc := input.PartnerConfig.(*api.PartnerConfigAWS)
+			if !compareNillableStrings(pc.AmazonIPAddress, v.Resources.AwsVirtualInterface.AmazonIpAddress) {
+				return nil, "PENDING", nil
+			}
+			if !compareNillableStrings(pc.AWSAccountID, v.Resources.AwsVirtualInterface.OwnerAccount) {
+				return nil, "PENDING", nil
+			}
+			if !compareNillableStrings(pc.AWSConnectionName, v.Resources.AwsVirtualInterface.Name) {
+				return nil, "PENDING", nil
+			}
+			if !compareNillableStrings(pc.BGPAuthKey, v.Resources.AwsVirtualInterface.AuthKey) {
+				return nil, "PENDING", nil
+			}
+			if !compareNillableUints(pc.CustomerASN, v.Resources.AwsVirtualInterface.Asn) {
+				return nil, "PENDING", nil
+			}
+			if !compareNillableStrings(pc.CustomerIPAddress, v.Resources.AwsVirtualInterface.CustomerIpAddress) {
+				return nil, "PENDING", nil
+			}
+			if !compareNillableStrings(pc.Type, strings.ToLower(v.Resources.AwsVirtualInterface.Type)) {
 				return nil, "PENDING", nil
 			}
 			return v, "UPDATED", nil
