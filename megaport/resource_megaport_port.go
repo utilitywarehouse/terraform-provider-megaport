@@ -77,16 +77,16 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return nil
 	}
-	if err := d.Set("location_id", p.LocationId); err != nil {
+	if err := d.Set("location_id", int(p.LocationId)); err != nil {
 		return err
 	}
 	if err := d.Set("name", p.ProductName); err != nil {
 		return err
 	}
-	if err := d.Set("speed", p.PortSpeed); err != nil {
+	if err := d.Set("speed", int(p.PortSpeed)); err != nil {
 		return err
 	}
-	if err := d.Set("term", p.ContractTermMonths); err != nil {
+	if err := d.Set("term", int(p.ContractTermMonths)); err != nil {
 		return err
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {

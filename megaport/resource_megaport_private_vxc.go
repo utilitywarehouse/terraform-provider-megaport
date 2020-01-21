@@ -62,7 +62,7 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 	if err := d.Set("name", p.ProductName); err != nil {
 		return err
 	}
-	if err := d.Set("rate_limit", p.RateLimit); err != nil {
+	if err := d.Set("rate_limit", int(p.RateLimit)); err != nil {
 		return err
 	}
 	if err := d.Set("a_end", flattenVxcEnd(p.AEnd)); err != nil {
