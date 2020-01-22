@@ -227,7 +227,7 @@ func parseResponseBody(resp *http.Response, data interface{}) error {
 		return err
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, resp.Body)
+		io.Copy(ioutil.Discard, resp.Body) // nolint: errcheck
 		resp.Body.Close()
 	}()
 	if err := json.Unmarshal(body, &data); err != nil {
