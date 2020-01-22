@@ -133,4 +133,4 @@ endif
 website-test: website-setup
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build depscheck docscheck fmt fmtcheck lint providerlint sweep test testacc website websitefmtcheck website-lint website-setup website-test
+.PHONY: build depscheck docscheck fmt fmtcheck lint providerlint reset-token sweep test testacc website websitefmtcheck website-lint website-setup website-test
