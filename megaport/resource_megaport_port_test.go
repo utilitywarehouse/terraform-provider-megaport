@@ -15,15 +15,15 @@ func TestAccMegaportPort_basic(t *testing.T) {
 		"uid":      rName,
 		"location": "Telehouse North",
 	}
-	cfg, err := testAccGetConfig("megaport_port_basic", configValues, 0)
+	cfg, err := newTestAccConfig("megaport_port_basic", configValues, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfgUpdate, err := testAccGetConfig("megaport_port_basic_update", configValues, 1)
+	cfgUpdate, err := newTestAccConfig("megaport_port_basic_update", configValues, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfgForceNew, err := testAccGetConfig("megaport_port_basic_forcenew", configValues, 2)
+	cfgForceNew, err := newTestAccConfig("megaport_port_basic_forcenew", configValues, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +34,8 @@ func TestAccMegaportPort_basic(t *testing.T) {
 		CheckDestroy: testAccCheckResourceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cfg,
+				PreConfig: func() { cfg.log() },
+				Config:    cfg.Config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckResourceExists("megaport_port.foo", &port),
 					resource.TestCheckResourceAttr("megaport_port.foo", "name", "terraform_acctest_"+rName),
@@ -47,7 +48,8 @@ func TestAccMegaportPort_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: cfgUpdate,
+				PreConfig: func() { cfgUpdate.log() },
+				Config:    cfgUpdate.Config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckResourceExists("megaport_port.foo", &portUpdated),
 					resource.TestCheckResourceAttr("megaport_port.foo", "name", "terraform_acctest_"+rName),
@@ -60,7 +62,8 @@ func TestAccMegaportPort_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: cfgForceNew,
+				PreConfig: func() { cfgForceNew.log() },
+				Config:    cfgForceNew.Config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckResourceExists("megaport_port.foo", &portNew),
 					resource.TestCheckResourceAttr("megaport_port.foo", "name", "terraform_acctest_"+rName),

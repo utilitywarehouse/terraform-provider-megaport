@@ -105,7 +105,21 @@ func testAccNewConfig(name string) (*template.Template, error) {
 	return t, nil
 }
 
-func testAccGetConfig(name string, values map[string]interface{}, step int) (string, error) {
+type testAccConfig struct {
+	Config string
+	Name   string
+	Step   int
+}
+
+func (c testAccConfig) log() {
+	l := strings.Split(c.Config, "\n")
+	for i := range l {
+		l[i] = "      " + l[i]
+	}
+	fmt.Printf("+++ CONFIG %q (step %d):\n%s\n", c.Name, c.Step, strings.Join(l, "\n"))
+}
+
+func newTestAccConfig(name string, values map[string]interface{}, step int) (*testAccConfig, error) {
 	var (
 		t   *template.Template
 		err error
@@ -115,19 +129,11 @@ func testAccGetConfig(name string, values map[string]interface{}, step int) (str
 	if t == nil {
 		t, err = testAccNewConfig(name)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 	}
 	if err := t.Execute(cfg, values); err != nil {
-		return "", err
+		return nil, err
 	}
-	ret := cfg.String()
-	if step > -1 {
-		l := strings.Split(ret, "\n")
-		for i := range l {
-			l[i] = "      " + l[i]
-		}
-		fmt.Printf("+++ CONFIG %q (step %d):\n%s\n", name, step, strings.Join(l, "\n"))
-	}
-	return ret, nil
+	return &testAccConfig{Config: cfg.String(), Name: name, Step: step}, nil
 }
