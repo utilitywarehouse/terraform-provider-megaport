@@ -36,11 +36,11 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 		"aws_ip_address":      ipA,
 		"customer_ip_address": ipB,
 	}
-	cfg, err := testAccGetConfig("megaport_aws_vxc_basic", configValues, 0)
+	cfg, err := newTestAccConfig("megaport_aws_vxc_basic", configValues, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfgUpdate, err := testAccGetConfig("megaport_aws_vxc_basic_update", configValues, 1)
+	cfgUpdate, err := newTestAccConfig("megaport_aws_vxc_basic_update", configValues, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,8 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 		CheckDestroy: testAccCheckResourceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cfg,
+				PreConfig: func() { cfg.log() },
+				Config:    cfg.Config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckResourceExists("megaport_port.foo", &port),
 					testAccCheckResourceExists("megaport_aws_vxc.foo", &vxc),
@@ -72,7 +73,8 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: cfgUpdate,
+				PreConfig: func() { cfgUpdate.log() },
+				Config:    cfgUpdate.Config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckResourceExists("megaport_port.foo", &port),
 					testAccCheckResourceExists("megaport_aws_vxc.foo", &vxcUpdated),
