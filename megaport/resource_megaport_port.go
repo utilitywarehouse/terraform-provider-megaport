@@ -59,7 +59,6 @@ func resourceMegaportPort() *schema.Resource {
 			},
 			"associated_vxcs": {
 				Type:     schema.TypeSet,
-				Optional: true,
 				Computed: true,
 				Elem:     resourceMegaportPrivateVxc(),
 				Set:      schema.HashResource(resourceMegaportPrivateVxc()),
