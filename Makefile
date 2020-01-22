@@ -1,5 +1,5 @@
 SWEEP?=staging
-TEST?=./...
+TEST?=$$(go list ./...)
 GOFMT_FILES?=$$(find . -not -path "./vendor/*" -type f -name '*.go')
 PKG_NAME=megaport
 WEBSITE_REPO=github.com/hashicorp/terraform-website
