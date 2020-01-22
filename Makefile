@@ -33,7 +33,9 @@ docscheck:
 		--workdir /terraform-provider-megaport \
 		bflad/tfproviderdocs \
 		check \
-		-providers-schema-json=/provider-schema/schema.json
+		-allowed-resource-subcategories=resources,datasources \
+		-providers-schema-json=/provider-schema/schema.json \
+		-require-resource-subcategory
 	@rm -rf $(PROVIDER_SCHEMA)
 
 fmt:
@@ -132,6 +134,6 @@ endif
 	@ln -sf ../../../ext/providers/$(PKG_NAME)/website/$(PKG_NAME).erb $(GOPATH)/src/$(WEBSITE_REPO)/content/source/layouts/
 
 website-test: website-setup
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
+	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME); rc=$$?; docker stop tf-website-$(PKG_NAME)-temp; exit $$rc
 
 .PHONY: build depscheck docscheck fmt fmtcheck lint providerlint reset-token sweep test testacc website websitefmtcheck website-lint website-setup website-test
