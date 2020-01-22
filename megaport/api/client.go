@@ -235,10 +235,3 @@ func parseResponseBody(resp *http.Response, data interface{}) error {
 	}
 	return nil
 }
-
-func (c *Client) userAgent() string {
-	if c.UserAgent == "" {
-		return UserAgent
-	}
-	return UserAgent + " " + c.UserAgent
-}
