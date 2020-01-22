@@ -68,6 +68,9 @@ providerlint:
 		-c 0 \
 		./...
 
+reset-token:
+	@sh -c 'cd util/megaport_token && go run . --reset'
+
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
 	go test $(TEST) -v -sweep=$(SWEEP) $(SWEEPARGS)
