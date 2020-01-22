@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"github.com/pquerna/otp/totp"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -14,40 +15,61 @@ const (
 )
 
 func main() {
+	var (
+		reset                          = false
+		endpoint                       = api.EndpointStaging
+		username, password, totpSecret string
+	)
 	if len(os.Args) > 2 {
 		log.Fatalln(usage)
 	}
 	if len(os.Args) == 2 {
 		switch os.Args[1] {
 		case "--reset":
-			token := os.Getenv("MEGAPORT_TOKEN")
-			if token == "" {
-				log.Fatal("To reset the token, please export MEGAPORT_TOKEN with your current token")
-			}
-			c := api.NewClient(api.EndpointStaging)
-			c.Token = token
-			if err := c.Logout(); err != nil {
-				log.Fatal(err)
-			}
-			log.Print("Current token has been reset. Please login again to fetch a new one.")
+			reset = true
+			log.Println("The token will be reset to retrieve a new one")
 		default:
 			log.Fatalln(usage)
 		}
 	}
-	scanner := bufio.NewScanner(os.Stdin)
-	var username, password, otp string
-	fmt.Printf("username: ")
-	scanner.Scan()
-	username = scanner.Text()
-	fmt.Printf("password: ")
-	scanner.Scan()
-	password = scanner.Text()
-	fmt.Printf("otp (leave empty if disabled): ")
-	scanner.Scan()
-	otp = scanner.Text()
-	c := api.NewClient(api.EndpointStaging)
-	if err := c.Login(username, password, otp); err != nil {
-		log.Fatal(err)
+	if v := os.Getenv("MEGAPORT_ENDPOINT"); v != "" {
+		endpoint = v
 	}
-	fmt.Printf("MEGAPORT_TOKEN=%s\n", c.Token)
+	log.Printf("Endpoint: %s\n", endpoint)
+	if username = os.Getenv("MEGAPORT_USERNAME"); username == "" {
+		log.Fatalln("MEGAPORT_USERNAME is empty")
+	}
+	if password = os.Getenv("MEGAPORT_PASSWORD"); password == "" {
+		log.Fatalln("MEGAPORT_PASSWORD is empty")
+	}
+	totpSecret = os.Getenv("MEGAPORT_TOTP_SECRET")
+	token, err := getToken(endpoint, username, password, totpSecret, reset)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Printf("MEGAPORT_TOKEN=%s\n", token)
+}
+
+func getToken(endpoint, username, password, totpSecret string, reset bool) (string, error) {
+	otp := ""
+	if totpSecret != "" {
+		v, err := totp.GenerateCode(totpSecret, time.Now())
+		if err != nil {
+			return "", err
+		}
+		otp = v
+	}
+	c := api.NewClient(endpoint)
+	if reset {
+		if err := c.Login(username, password, otp); err != nil {
+			return "", err
+		}
+		if err := c.Logout(); err != nil {
+			return "", err
+		}
+	}
+	if err := c.Login(username, password, otp); err != nil {
+		return "", err
+	}
+	return c.Token, nil
 }
