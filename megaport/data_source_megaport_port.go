@@ -21,7 +21,7 @@ func dataSourceMegaportPort() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
 			},
