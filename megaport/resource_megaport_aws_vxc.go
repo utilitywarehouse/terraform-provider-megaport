@@ -70,7 +70,6 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 			"aws_account_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"aws_ip_address": {
 				Type:         schema.TypeString,
@@ -87,7 +86,6 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 			"customer_asn": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
 			},
 			"customer_ip_address": {
 				Type:         schema.TypeString,

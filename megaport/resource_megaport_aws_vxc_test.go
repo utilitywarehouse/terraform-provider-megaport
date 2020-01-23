@@ -18,8 +18,6 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 		port            api.Product
 	)
 	rName := "t" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	rId := acctest.RandStringFromCharSet(12, "012346789")
-	rAsn := uint64(acctest.RandIntRange(1, 65535))
 	rand.Seed(time.Now().UnixNano())
 	n := &net.IPNet{
 		IP:   net.IPv4(169, 254, byte(rand.Intn(255)), byte(rand.Intn(63)*4+1)),
@@ -31,8 +29,8 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	configValues := map[string]interface{}{
 		"uid":                 rName,
 		"location":            "Equinix LD5",
-		"aws_account_id":      rId,
-		"customer_asn":        rAsn,
+		"aws_account_id":      acctest.RandStringFromCharSet(12, "012346789"),
+		"customer_asn":        acctest.RandIntRange(1, 65535),
 		"aws_ip_address":      ipA,
 		"customer_ip_address": ipB,
 	}
@@ -40,7 +38,15 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfgUpdate, err := newTestAccConfig("megaport_aws_vxc_basic_update", configValues, 1)
+	configValuesUpdate := map[string]interface{}{
+		"uid":                 rName,
+		"location":            "Equinix LD5",
+		"aws_account_id":      acctest.RandStringFromCharSet(12, "012346789"),
+		"customer_asn":        acctest.RandIntRange(1, 65535),
+		"aws_ip_address":      ipA,
+		"customer_ip_address": ipB,
+	}
+	cfgUpdate, err := newTestAccConfig("megaport_aws_vxc_basic_update", configValuesUpdate, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,11 +69,11 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "a_end.0.vlan", "567"),
 					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "b_end.0.product_uid", "data.megaport_partner_port.aws", "id"),
 					resource.TestCheckResourceAttrSet("megaport_aws_vxc.foo", "b_end.0.connected_product_uid"),
-					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_account_id", rId),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_account_id", configValues["aws_account_id"].(string)),
 					resource.TestCheckResourceAttrSet("megaport_aws_vxc.foo", "b_end.0.aws_connection_name"),
 					resource.TestCheckResourceAttrSet("megaport_aws_vxc.foo", "b_end.0.aws_ip_address"),
 					resource.TestCheckResourceAttrSet("megaport_aws_vxc.foo", "b_end.0.bgp_auth_key"),
-					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_asn", strconv.Itoa(int(rAsn))),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_asn", strconv.Itoa(configValues["customer_asn"].(int))),
 					resource.TestCheckResourceAttrSet("megaport_aws_vxc.foo", "b_end.0.customer_ip_address"),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.type", "private"),
 				),
@@ -85,17 +91,18 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "a_end.0.vlan", "568"),
 					resource.TestCheckResourceAttrPair("megaport_aws_vxc.foo", "b_end.0.product_uid", "data.megaport_partner_port.aws", "id"),
 					resource.TestCheckResourceAttrSet("megaport_aws_vxc.foo", "b_end.0.connected_product_uid"),
-					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_account_id", rId),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_account_id", configValuesUpdate["aws_account_id"].(string)),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_connection_name", rName),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.aws_ip_address", ipA),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.bgp_auth_key", rName),
-					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_asn", strconv.Itoa(int(rAsn))),
+					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_asn", strconv.Itoa(configValuesUpdate["customer_asn"].(int))),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_ip_address", ipB),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.type", "private"),
 				),
 			},
 		},
 	})
+
 	if vxc.ProductUid != vxcUpdated.ProductUid {
 		t.Errorf("TestAccMegaportAwsVxc_basic: expected the VXC to be updated but the resource ids differ")
 	}
