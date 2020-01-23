@@ -1,0 +1,44 @@
+<% wrap_layout :inner do %>
+  <% content_for :sidebar do %>
+    <div class="docs-sidebar hidden-print affix-top" role="complementary">
+      <a href="#" class="subnav-toggle">(Expand/collapse all)</a>
+      <ul class="nav docs-sidenav">
+        <li<%= sidebar_current("docs-home") %>>
+        <a href="/docs/providers/index.html">All Providers</a>
+        </li>
+
+        <li<%= sidebar_current("docs-megaport-index") %>>
+        <a href="/docs/providers/megaport/index.html">Megaport Provider</a>
+        </li>
+
+        <li<%= sidebar_current("docs-megaport-datasources") %>>
+          <a href="#">Data Sources</a>
+          <ul class="nav nav-visible">
+            <li<%= sidebar_current("docs-megaport-datasource-location") %>>
+              <a href="/docs/providers/megaport/d/location.html">megaport_location</a>
+            </li>
+            <li<%= sidebar_current("docs-megaport-datasource-partner-port") %>>
+              <a href="/docs/providers/megaport/d/partner_port.html">megaport_partner_port</a>
+            </li>
+            <li<%= sidebar_current("docs-megaport-datasource-port") %>>
+              <a href="/docs/providers/megaport/d/port.html">megaport_port</a>
+            </li>
+          </ul>
+        </li>
+
+        <li<%= sidebar_current("docs-megaport-resources") %>>
+        <a href="#">Resources</a>
+        <ul class="nav nav-visible">
+          <li<%= sidebar_current("docs-megaport-port") %>>
+            <a href="/docs/providers/megaport/r/port.html">megaport_port</a>
+          </li>
+          <li<%= sidebar_current("docs-megaport-aws-vxc") %>>
+            <a href="/docs/providers/megaport/r/aws_vxc.html">megaport_aws_vxc</a>
+          </li>
+        </ul>
+        </li>
+      </ul>
+    </div>
+  <% end %>
+  <%= yield %>
+<% end %>
