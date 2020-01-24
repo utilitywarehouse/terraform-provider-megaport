@@ -6,8 +6,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"testing"
 	"text/template"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
@@ -16,6 +18,30 @@ import (
 var (
 	testAccConfigTemplates = &template.Template{}
 )
+
+func TestValidateAWSBGPAuthKey(t *testing.T) {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012346789"
+	short := acctest.RandStringFromCharSet(5, charset)
+	long := acctest.RandStringFromCharSet(25, charset)
+	whitespace := acctest.RandStringFromCharSet(5, charset) + " " + acctest.RandStringFromCharSet(5, charset)
+	ok := acctest.RandStringFromCharSet(8, charset)
+	e, w := validateAWSBGPAuthKey(ok, "test_value")
+	if len(e) > 0 || len(w) > 0 {
+		t.Errorf("validateAWSBGPAuthKey: %q failed validation, expected it to pass", ok)
+	}
+	e, w = validateAWSBGPAuthKey(short, "test_value")
+	if len(e) == 0 && len(w) == 0 {
+		t.Errorf("validateAWSBGPAuthKey: %q passed validation, expected it to fail", short)
+	}
+	e, w = validateAWSBGPAuthKey(long, "test_value")
+	if len(e) == 0 && len(w) == 0 {
+		t.Errorf("validateAWSBGPAuthKey: %q passed validation, expected it to fail", long)
+	}
+	e, w = validateAWSBGPAuthKey(whitespace, "test_value")
+	if len(e) == 0 && len(w) == 0 {
+		t.Errorf("validateAWSBGPAuthKey: %q passed validation, expected it to fail", whitespace)
+	}
+}
 
 func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
 	r := make(map[string]interface{}, len(a))

@@ -57,6 +57,23 @@ func validateCIDRAddress(v interface{}, k string) (warns []string, errs []error)
 	return
 }
 
+func validateAWSBGPAuthKey(v interface{}, k string) (warns []string, errs []error) {
+	vv, ok := v.(string)
+	if !ok {
+		errs = append(errs, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+	if len(vv) < 6 || len(vv) > 24 {
+		errs = append(errs, fmt.Errorf("%q must be between 6 and 24 characters long", k))
+		return
+	}
+	if strings.Index(vv, " ") != -1 {
+		errs = append(errs, fmt.Errorf("%q cannot contain any whitespace", k))
+		return
+	}
+	return
+}
+
 func flattenVxcEnd(v api.ProductAssociatedVxcEnd) []interface{} {
 	return []interface{}{map[string]interface{}{
 		"product_uid": v.ProductUid,
