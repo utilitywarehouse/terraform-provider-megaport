@@ -78,10 +78,11 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				ValidateFunc: validateCIDRAddress,
 			},
 			"bgp_auth_key": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Computed:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				Sensitive:    true,
+				ValidateFunc: validateAWSBGPAuthKey,
 			},
 			"customer_asn": {
 				Type:     schema.TypeInt,
