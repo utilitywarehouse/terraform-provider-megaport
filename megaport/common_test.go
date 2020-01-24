@@ -17,6 +17,17 @@ var (
 	testAccConfigTemplates = &template.Template{}
 )
 
+func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
+	r := make(map[string]interface{}, len(a))
+	for k, v := range a {
+		r[k] = v
+	}
+	for k, v := range b {
+		r[k] = v
+	}
+	return r
+}
+
 func testAccCheckResourceExists(n string, o interface{}) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		cfg := testAccProvider.Meta().(*Config)
