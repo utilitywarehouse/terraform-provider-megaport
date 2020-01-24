@@ -51,7 +51,7 @@ func dataSourceUpdatePartnerPorts(c *api.Client) error {
 	if megaportPartnerPorts != nil {
 		return nil
 	}
-	log.Printf("Updating partner port list")
+	log.Printf("[INFO] Updating partner port list")
 	pp, err := c.GetMegaports() // TODO: rename in api
 	if err != nil {
 		return err

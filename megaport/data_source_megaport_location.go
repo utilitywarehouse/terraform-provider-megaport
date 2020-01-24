@@ -36,7 +36,7 @@ func dataSourceUpdateLocations(c *api.Client) error {
 	if megaportLocations != nil {
 		return nil
 	}
-	log.Printf("Updating location list")
+	log.Printf("[INFO] Updating location list")
 	loc, err := c.GetLocations()
 	if err != nil {
 		return err

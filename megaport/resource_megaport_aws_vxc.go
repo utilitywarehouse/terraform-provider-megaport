@@ -138,7 +138,7 @@ func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetCloudVxc(d.Id())
 	if err != nil {
-		log.Printf("resourceMegaportAwsVxcRead: %v", err)
+		log.Printf("[ERROR] Could not get VXC information: %v", err)
 		d.SetId("")
 		return nil
 	}
@@ -224,7 +224,7 @@ func resourceMegaportAwsVxcDelete(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	if err == api.ErrNotFound {
-		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
+		log.Printf("[DEBUG] VXC (%s) not found, deleting from state anyway", d.Id())
 		return nil
 	}
 	if err := waitUntilAwsVxcIsDeleted(cfg.Client, d.Id(), 5*time.Minute); err != nil {
@@ -239,7 +239,7 @@ func waitUntilAwsVxcIsDeleted(client *api.Client, productUid string, timeout tim
 		vlanId  uint64
 	)
 	if v, err := client.GetCloudVxc(productUid); err != nil { // TODO we can probably use this for any kind of VXC
-		log.Printf("Error retrieving VXC while waiting for deletion to finish: %v", err)
+		log.Printf("[ERROR] Could not retrieve VXC while waiting for deletion to finish: %v", err)
 		return err
 	} else {
 		portUid = v.AEnd.ProductUid
@@ -250,7 +250,7 @@ func waitUntilAwsVxcIsDeleted(client *api.Client, productUid string, timeout tim
 		Refresh: func() (interface{}, string, error) {
 			v, err := client.GetCloudVxc(productUid) // TODO we can probably use this for any kind of VXC
 			if err != nil {
-				log.Printf("Error retrieving VXC while waiting for deletion to finish: %v", err)
+				log.Printf("[ERROR] Could not retrieve VXC while waiting for deletion to finish: %v", err)
 				return nil, "", err
 			}
 			if v == nil {
@@ -281,7 +281,7 @@ func waitUntilAwsVxcIsConfigured(client *api.Client, productUid string, timeout 
 		Refresh: func() (interface{}, string, error) {
 			v, err := client.GetCloudVxc(productUid) // TODO we can probably use this for any kind of VXC
 			if err != nil {
-				log.Printf("Error retrieving VXC while waiting for setup to finish: %v", err)
+				log.Printf("[ERROR] Could not retrieve VXC while waiting for setup to finish: %v", err)
 				return nil, "", err
 			}
 			if v == nil {
@@ -293,7 +293,7 @@ func waitUntilAwsVxcIsConfigured(client *api.Client, productUid string, timeout 
 		MinTimeout: 10 * time.Second,
 		Delay:      5 * time.Second,
 	}
-	log.Printf("[INFO] Waiting for VXC (%s) to be available", productUid)
+	log.Printf("[INFO] Waiting for VXC (%s) to be configured", productUid)
 	_, err := scc.WaitForState()
 	return err
 }
@@ -305,7 +305,7 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 		Refresh: func() (interface{}, string, error) {
 			v, err := client.GetCloudVxc(*input.ProductUid)
 			if err != nil {
-				log.Printf("Error retrieving VXC while waiting for setup to finish: %v", err)
+				log.Printf("[ERROR] Could not retrieve VXC while waiting for update to finish: %v", err)
 				return nil, "", err
 			}
 			if v == nil {
@@ -351,7 +351,7 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 		MinTimeout: 10 * time.Second,
 		Delay:      5 * time.Second,
 	}
-	log.Printf("[INFO] Waiting for VXC (%s) to be available", *input.ProductUid)
+	log.Printf("[INFO] Waiting for VXC (%s) to be updated", *input.ProductUid)
 	_, err := scc.WaitForState()
 	return err
 }

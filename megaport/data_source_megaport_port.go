@@ -35,7 +35,7 @@ func dataSourceUpdatePorts(c *api.Client) error {
 	if megaportPorts != nil {
 		return nil
 	}
-	log.Printf("Updating port list")
+	log.Printf("[INFO] Updating port list")
 	pp, err := c.ListPorts()
 	if err != nil {
 		return err
