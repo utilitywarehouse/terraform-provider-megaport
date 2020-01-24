@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 const (
@@ -121,4 +123,23 @@ func (c *Client) ListPorts() ([]*Product, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (c *Client) GetPortVlanIdAvailable(uid string, vlanId uint64) (bool, error) {
+	v := url.Values{}
+	v.Set("vlan", strconv.FormatUint(vlanId, 10))
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/product/port/%s/vlan?%s", c.BaseURL, uid, v.Encode()), nil)
+	if err != nil {
+		return false, err
+	}
+	data := []uint64{}
+	if err := c.do(req, &data); err != nil {
+		return false, err
+	}
+	for _, id := range data {
+		if vlanId == id {
+			return true, nil
+		}
+	}
+	return false, nil
 }
