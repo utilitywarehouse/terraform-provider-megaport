@@ -101,8 +101,12 @@ func TestClient_responseDataToError(t *testing.T) {
 			e: `megaport-api: foo: 2 errors: ['bar', 'baz']`,
 		},
 		{
-			p: `{"message":"foo","data":{"a":"b","c":5}}`,
-			e: `megaport-api: foo: a="b" c=5`,
+			p: `{"message":"foo","data":{"a":"b"}}`,
+			e: `megaport-api: foo: a="b"`,
+		},
+		{
+			p: `{"message":"foo","data":{"c":5}}`,
+			e: `megaport-api: foo: c=5`,
 		},
 		{
 			p: `{"message":"foo","data":true}`,
