@@ -300,8 +300,7 @@ func waitUntilAwsVxcIsConfigured(client *api.Client, productUid string, timeout 
 
 func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
-		Pending: []string{"PENDING"},
-		Target:  []string{"UPDATED"},
+		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
 			v, err := client.GetCloudVxc(*input.ProductUid)
 			if err != nil {
@@ -312,40 +311,40 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 				return nil, "", nil
 			}
 			if !compareNillableStrings(input.InvoiceReference, v.CostCentre) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableStrings(input.Name, v.ProductName) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableUints(input.RateLimit, v.RateLimit) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableUints(input.VlanA, v.AEnd.Vlan) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			pc := input.PartnerConfig.(*api.PartnerConfigAWS)
 			if !compareNillableStrings(pc.AmazonIPAddress, v.Resources.AwsVirtualInterface.AmazonIpAddress) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableStrings(pc.AWSAccountID, v.Resources.AwsVirtualInterface.OwnerAccount) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableStrings(pc.AWSConnectionName, v.Resources.AwsVirtualInterface.Name) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableStrings(pc.BGPAuthKey, v.Resources.AwsVirtualInterface.AuthKey) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableUints(pc.CustomerASN, v.Resources.AwsVirtualInterface.Asn) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableStrings(pc.CustomerIPAddress, v.Resources.AwsVirtualInterface.CustomerIpAddress) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
 			if !compareNillableStrings(pc.Type, strings.ToLower(v.Resources.AwsVirtualInterface.Type)) {
-				return nil, "PENDING", nil
+				return nil, "", nil
 			}
-			return v, "UPDATED", nil
+			return v, v.ProvisioningStatus, nil
 		},
 		Timeout:    timeout,
 		MinTimeout: 10 * time.Second,
