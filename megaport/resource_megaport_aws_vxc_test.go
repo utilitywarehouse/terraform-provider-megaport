@@ -1,9 +1,12 @@
 package megaport
 
 import (
+	"fmt"
+	"log"
 	"math/rand"
 	"net"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,6 +15,39 @@ import (
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
+func init() {
+	resource.AddTestSweepers("megaport_aws_vxc", &resource.Sweeper{
+		Name: "megaport_aws_vxc",
+		F: func(region string) error {
+			c, err := sharedClientForRegion(region)
+			if err != nil {
+				return fmt.Errorf("Error getting client: %s", err)
+			}
+			client := c.(*api.Client)
+			ports, err := client.ListPorts()
+			if err != nil {
+				return err
+			}
+			for _, p := range ports {
+				for _, v := range p.AssociatedVxcs {
+					if strings.HasPrefix(v.ProductName, "terraform_acctest_") && !client.IsResourceDeleted(v.ProvisioningStatus) {
+						vxc, err := client.GetCloudVxc(v.ProductUid)
+						if err != nil {
+							return err
+						}
+						if vxc.Resources.AwsVirtualInterface.ConnectType != "AWS" {
+							continue
+						}
+						if err := client.DeleteCloudVxc(vxc.ProductUid); err != nil {
+							log.Printf("[ERROR] Could not destroy port %q (%s) during sweep: %s", vxc.ProductName, vxc.ProductUid, err)
+						}
+					}
+				}
+			}
+			return nil
+		},
+	})
+}
 func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	var (
 		vxc, vxcUpdated, vxcNew api.ProductAssociatedVxc

@@ -1,12 +1,40 @@
 package megaport
 
 import (
+	"fmt"
+	"log"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
+
+func init() {
+	resource.AddTestSweepers("megaport_port", &resource.Sweeper{
+		Name: "megaport_port",
+		F: func(region string) error {
+			c, err := sharedClientForRegion(region)
+			if err != nil {
+				return fmt.Errorf("Error getting client: %s", err)
+			}
+			client := c.(*api.Client)
+			ports, err := client.ListPorts()
+			if err != nil {
+				return err
+			}
+			for _, p := range ports {
+				if strings.HasPrefix(p.ProductName, "terraform_acctest_") && !client.IsResourceDeleted(p.ProvisioningStatus) {
+					if err := client.DeletePort(p.ProductUid); err != nil {
+						log.Printf("[ERROR] Could not destroy port %q (%s) during sweep: %s", p.ProductName, p.ProductUid, err)
+					}
+				}
+			}
+			return nil
+		},
+	})
+}
 
 func TestAccMegaportPort_basic(t *testing.T) {
 	var port, portUpdated, portNew api.Product

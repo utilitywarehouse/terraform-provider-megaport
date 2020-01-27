@@ -67,7 +67,7 @@ func validateAWSBGPAuthKey(v interface{}, k string) (warns []string, errs []erro
 		errs = append(errs, fmt.Errorf("%q must be between 6 and 24 characters long", k))
 		return
 	}
-	if strings.Index(vv, " ") != -1 {
+	if strings.Contains(vv, " ") {
 		errs = append(errs, fmt.Errorf("%q cannot contain any whitespace", k))
 		return
 	}
