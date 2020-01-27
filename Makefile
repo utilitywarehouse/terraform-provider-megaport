@@ -76,7 +76,7 @@ reset-token:
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
-	go test $(TEST) -v -sweep=$(SWEEP) $(SWEEPARGS)
+	go test ./$(PKG_NAME) -v -sweep=$(SWEEP) $(SWEEPARGS)
 
 test: fmtcheck
 ifdef TEST_COVER

@@ -42,6 +42,12 @@ func NewClient(baseURL string) *Client {
 	return c
 }
 
+func (c *Client) IsResourceDeleted(provisioningStatus string) bool {
+	return provisioningStatus == ProductStatusCancelled ||
+		provisioningStatus == ProductStatusCancelledParent ||
+		provisioningStatus == ProductStatusDecommissioned
+}
+
 func (c *Client) Login(username, password, otp string) error {
 	v := url.Values{}
 	v.Set("username", username)
