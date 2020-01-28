@@ -227,51 +227,10 @@ func resourceMegaportAwsVxcDelete(d *schema.ResourceData, m interface{}) error {
 		log.Printf("[DEBUG] VXC (%s) not found, deleting from state anyway", d.Id())
 		return nil
 	}
-	if err := waitUntilAwsVxcIsDeleted(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+	if err := waitUntilVxcIsDeleted(cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return err
 	}
 	return nil
-}
-
-func waitUntilAwsVxcIsDeleted(client *api.Client, productUid string, timeout time.Duration) error {
-	var (
-		portUid string
-		vlanId  uint64
-	)
-	if v, err := client.GetVxc(productUid); err != nil { // TODO we can probably use this for any kind of VXC
-		log.Printf("[ERROR] Could not retrieve VXC while waiting for deletion to finish: %v", err)
-		return err
-	} else {
-		portUid = v.AEnd.ProductUid
-		vlanId = v.AEnd.Vlan
-	}
-	scc := &resource.StateChangeConf{
-		Target: []string{api.ProductStatusDecommissioned},
-		Refresh: func() (interface{}, string, error) {
-			v, err := client.GetVxc(productUid) // TODO we can probably use this for any kind of VXC
-			if err != nil {
-				log.Printf("[ERROR] Could not retrieve VXC while waiting for deletion to finish: %v", err)
-				return nil, "", err
-			}
-			if v == nil {
-				return nil, "", nil
-			}
-			ok, err := client.GetPortVlanIdAvailable(portUid, vlanId)
-			if err != nil {
-				return v, "", err
-			}
-			if !ok {
-				return v, "", nil
-			}
-			return v, v.ProvisioningStatus, nil
-		},
-		Timeout:    timeout,
-		MinTimeout: 10 * time.Second,
-		Delay:      5 * time.Second,
-	}
-	log.Printf("[INFO] Waiting for VXC (%s) to be deleted", productUid)
-	_, err := scc.WaitForState()
-	return err
 }
 
 func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput, timeout time.Duration) error {

@@ -4,6 +4,12 @@ import (
 	"encoding/json"
 )
 
+const (
+	VXCTypePrivate = "private"
+	VXCTypeAWS     = "aws"
+	VXCTypePartner = "partner"
+)
+
 // Some of the following types differ from examples seen in the documentation at
 // https://dev.megaport.com. In some cases, the API responds with a different
 // set of fields and/or field types and so the structs in this file match that,
@@ -268,6 +274,16 @@ type ProductAssociatedVxc struct {
 	SecondaryName      string
 	UsageAlgorithm     string
 	VxcApproval        ProductAssociatedVxcApproval
+}
+
+func (v *ProductAssociatedVxc) Type() string {
+	if v.AEnd.OwnerUid == v.BEnd.OwnerUid {
+		return VXCTypePrivate
+	}
+	if v.Resources.AwsVirtualInterface.ConnectType == "AWS" {
+		return VXCTypeAWS
+	}
+	return VXCTypePartner
 }
 
 type ProductAssociatedVxcEnd struct {
