@@ -174,19 +174,20 @@ func (c *Client) CreatePrivateVxc(v *PrivateVxcCreateInput) (*string, error) {
 	return &uid, nil
 }
 
-func (c *Client) GetPrivateVxc(uid string) (*ProductAssociatedVxc, error) { // TODO: rename struct
+func (c *Client) GetVxc(uid string) (*ProductAssociatedVxc, error) { // TODO: rename struct
 	d := &ProductAssociatedVxc{}
 	err := c.get(uid, d)
 	return d, err
+}
+
+func (c *Client) DeleteVxc(uid string) error {
+	return c.delete(uid)
 }
 
 func (c *Client) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
 	return c.update(*v.ProductUid, v)
 }
 
-func (c *Client) DeletePrivateVxc(uid string) error {
-	return c.delete(uid)
-}
 
 type PartnerConfig interface {
 	connectType() string
@@ -302,18 +303,6 @@ func (c *Client) CreateCloudVxc(v *CloudVxcCreateInput) (*string, error) {
 	return &uid, nil
 }
 
-func (c *Client) GetCloudVxc(uid string) (*ProductAssociatedVxc, error) { // TODO: rename struct
-	d := &ProductAssociatedVxc{}
-	if err := c.get(uid, d); err != nil {
-		return nil, err
-	}
-	return d, nil
-}
-
 func (c *Client) UpdateCloudVxc(v *CloudVxcUpdateInput) error {
 	return c.update(*v.ProductUid, v)
-}
-
-func (c *Client) DeleteCloudVxc(uid string) error {
-	return c.delete(uid)
 }

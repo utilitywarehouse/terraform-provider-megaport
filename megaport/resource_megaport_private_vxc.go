@@ -49,7 +49,7 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 
 func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	p, err := cfg.Client.GetPrivateVxc(d.Id())
+	p, err := cfg.Client.GetVxc(d.Id())
 	if err != nil {
 		log.Printf("resourceMegaportPrivateVxcRead: %v", err)
 		d.SetId("")
@@ -120,7 +120,7 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 
 func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	err := cfg.Client.DeletePrivateVxc(d.Id())
+	err := cfg.Client.DeleteVxc(d.Id())
 	if err != nil && err != api.ErrNotFound {
 		return err
 	}

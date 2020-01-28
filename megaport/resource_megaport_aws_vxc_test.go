@@ -31,14 +31,14 @@ func init() {
 			for _, p := range ports {
 				for _, v := range p.AssociatedVxcs {
 					if strings.HasPrefix(v.ProductName, "terraform_acctest_") && !client.IsResourceDeleted(v.ProvisioningStatus) {
-						vxc, err := client.GetCloudVxc(v.ProductUid)
+						vxc, err := client.GetVxc(v.ProductUid)
 						if err != nil {
 							return err
 						}
 						if vxc.Resources.AwsVirtualInterface.ConnectType != "AWS" {
 							continue
 						}
-						if err := client.DeleteCloudVxc(vxc.ProductUid); err != nil {
+						if err := client.DeleteVxc(vxc.ProductUid); err != nil {
 							log.Printf("[ERROR] Could not destroy port %q (%s) during sweep: %s", vxc.ProductName, vxc.ProductUid, err)
 						}
 					}
@@ -48,6 +48,7 @@ func init() {
 		},
 	})
 }
+
 func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	var (
 		vxc, vxcUpdated, vxcNew api.ProductAssociatedVxc

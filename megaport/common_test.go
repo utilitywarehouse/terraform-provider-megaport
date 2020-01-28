@@ -69,7 +69,7 @@ func testAccCheckResourceExists(n string, o interface{}) resource.TestCheckFunc 
 			}
 			*(o.(*api.Product)) = *v
 		case *api.ProductAssociatedVxc:
-			v, err := cfg.Client.GetCloudVxc(rs.Primary.ID)
+			v, err := cfg.Client.GetVxc(rs.Primary.ID)
 			if err != nil {
 				return err
 			}
@@ -97,7 +97,9 @@ func testAccCheckResourceDestroy(s *terraform.State) error {
 				return fmt.Errorf("testAccCheckResourceDestroy: %q (%s) has not been destroyed", n, rs.Primary.ID)
 			}
 		case "megaport_aws_vxc":
-			v, err := cfg.Client.GetCloudVxc(rs.Primary.ID)
+			fallthrough
+		case "megaport_private_vxc":
+			v, err := cfg.Client.GetVxc(rs.Primary.ID)
 			if err != nil {
 				return err
 			}
