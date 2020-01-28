@@ -101,3 +101,27 @@ func compareNillableStrings(a *string, b string) bool {
 func compareNillableUints(a *uint64, b uint64) bool {
 	return a == nil || *a == b
 }
+
+func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+	scc := &resource.StateChangeConf{
+		Pending: []string{api.ProductStatusDeployable},
+		Target:  []string{api.ProductStatusConfigured, api.ProductStatusLive},
+		Refresh: func() (interface{}, string, error) {
+			v, err := client.GetVxc(productUid)
+			if err != nil {
+				log.Printf("[ERROR] Could not retrieve VXC while waiting for setup to finish: %v", err)
+				return nil, "", err
+			}
+			if v == nil {
+				return nil, "", nil
+			}
+			return v, v.ProvisioningStatus, nil
+		},
+		Timeout:    timeout,
+		MinTimeout: 10 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	log.Printf("[INFO] Waiting for VXC (%s) to be configured", productUid)
+	_, err := scc.WaitForState()
+	return err
+}

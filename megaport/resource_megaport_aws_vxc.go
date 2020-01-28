@@ -187,7 +187,7 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	d.SetId(*uid)
-	if err := waitUntilAwsVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
+	if err := waitUntilVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
 		return err
 	}
 	return resourceMegaportAwsVxcRead(d, m)
@@ -208,7 +208,7 @@ func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	if err := cfg.Client.UpdateCloudVxc(input); err != nil {
 		return err
 	}
-	if err := waitUntilAwsVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+	if err := waitUntilVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return err
 	}
 	if err := waitUntilAwsVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
@@ -270,30 +270,6 @@ func waitUntilAwsVxcIsDeleted(client *api.Client, productUid string, timeout tim
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for VXC (%s) to be deleted", productUid)
-	_, err := scc.WaitForState()
-	return err
-}
-
-func waitUntilAwsVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
-	scc := &resource.StateChangeConf{
-		Pending: []string{api.ProductStatusDeployable},
-		Target:  []string{api.ProductStatusConfigured, api.ProductStatusLive},
-		Refresh: func() (interface{}, string, error) {
-			v, err := client.GetVxc(productUid) // TODO we can probably use this for any kind of VXC
-			if err != nil {
-				log.Printf("[ERROR] Could not retrieve VXC while waiting for setup to finish: %v", err)
-				return nil, "", err
-			}
-			if v == nil {
-				return nil, "", nil
-			}
-			return v, v.ProvisioningStatus, nil
-		},
-		Timeout:    timeout,
-		MinTimeout: 10 * time.Second,
-		Delay:      5 * time.Second,
-	}
-	log.Printf("[INFO] Waiting for VXC (%s) to be configured", productUid)
 	_, err := scc.WaitForState()
 	return err
 }
