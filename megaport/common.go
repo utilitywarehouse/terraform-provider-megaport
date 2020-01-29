@@ -2,9 +2,12 @@ package megaport
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
@@ -100,4 +103,74 @@ func compareNillableStrings(a *string, b string) bool {
 
 func compareNillableUints(a *uint64, b uint64) bool {
 	return a == nil || *a == b
+}
+
+func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+	scc := &resource.StateChangeConf{
+		Pending: []string{api.ProductStatusDeployable},
+		Target:  []string{api.ProductStatusConfigured, api.ProductStatusLive},
+		Refresh: func() (interface{}, string, error) {
+			v, err := client.GetVxc(productUid)
+			if err != nil {
+				log.Printf("[ERROR] Could not retrieve VXC while waiting for setup to finish: %v", err)
+				return nil, "", err
+			}
+			if v == nil {
+				return nil, "", nil
+			}
+			return v, v.ProvisioningStatus, nil
+		},
+		Timeout:    timeout,
+		MinTimeout: 10 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	log.Printf("[INFO] Waiting for VXC (%s) to be configured", productUid)
+	_, err := scc.WaitForState()
+	return err
+}
+
+func waitUntilVxcIsDeleted(client *api.Client, productUid string, timeout time.Duration) error {
+	initial, err := client.GetVxc(productUid)
+	if err != nil {
+		log.Printf("[ERROR] Could not retrieve VXC while waiting for deletion to finish: %v", err)
+		return err
+	}
+	scc := &resource.StateChangeConf{
+		Target: []string{api.ProductStatusDecommissioned},
+		Refresh: func() (interface{}, string, error) {
+			v, err := client.GetVxc(productUid)
+			if err != nil {
+				log.Printf("[ERROR] Could not retrieve VXC while waiting for deletion to finish: %v", err)
+				return nil, "", err
+			}
+			if v == nil {
+				return nil, "", nil
+			}
+			if initial.AEnd.Vlan > 0 {
+				ok, err := client.GetPortVlanIdAvailable(initial.AEnd.ProductUid, initial.AEnd.Vlan)
+				if err != nil {
+					return v, "", err
+				}
+				if !ok {
+					return v, "", nil
+				}
+			}
+			if initial.BEnd.Vlan > 0 && initial.Type() == api.VxcTypePrivate {
+				ok, err := client.GetPortVlanIdAvailable(initial.BEnd.ProductUid, initial.BEnd.Vlan)
+				if err != nil {
+					return v, "", err
+				}
+				if !ok {
+					return v, "", nil
+				}
+			}
+			return v, v.ProvisioningStatus, nil
+		},
+		Timeout:    timeout,
+		MinTimeout: 10 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	log.Printf("[INFO] Waiting for VXC (%s) to be deleted", productUid)
+	_, err = scc.WaitForState()
+	return err
 }
