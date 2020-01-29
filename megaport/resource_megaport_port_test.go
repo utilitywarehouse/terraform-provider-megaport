@@ -14,6 +14,10 @@ import (
 func init() {
 	resource.AddTestSweepers("megaport_port", &resource.Sweeper{
 		Name: "megaport_port",
+		Dependencies: []string{
+			"megaport_aws_vxc",
+			"megaport_private_vxc",
+		},
 		F: func(region string) error {
 			c, err := sharedClientForRegion(region)
 			if err != nil {
