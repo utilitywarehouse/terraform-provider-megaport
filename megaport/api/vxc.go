@@ -108,7 +108,7 @@ type PrivateVxcCreateInput struct {
 }
 
 func (v *PrivateVxcCreateInput) productType() string {
-	return ProductTypeVXC
+	return ProductTypeVxc
 }
 
 func (v *PrivateVxcCreateInput) toPayload() ([]byte, error) {
@@ -151,7 +151,7 @@ type PrivateVxcUpdateInput struct {
 }
 
 func (v *PrivateVxcUpdateInput) productType() string {
-	return ProductTypeVXC
+	return ProductTypeVxc
 }
 
 func (v *PrivateVxcUpdateInput) toPayload() ([]byte, error) {
@@ -266,7 +266,7 @@ func (v *CloudVxcCreateInput) toPayload() ([]byte, error) {
 }
 
 func (v *CloudVxcCreateInput) productType() string {
-	return ProductTypeVXC
+	return ProductTypeVxc
 }
 
 type CloudVxcUpdateInput struct {
@@ -279,7 +279,7 @@ type CloudVxcUpdateInput struct {
 }
 
 func (v *CloudVxcUpdateInput) productType() string {
-	return ProductTypeVXC
+	return ProductTypeVxc
 }
 
 func (v *CloudVxcUpdateInput) toPayload() ([]byte, error) {
