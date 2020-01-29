@@ -179,8 +179,8 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 	if v, ok := d.GetOk("invoice_reference"); ok {
 		input.InvoiceReference = api.String(v)
 	}
-	if v := a["vlan"]; v != 0 {
-		input.VlanA = api.Uint64FromInt(a["vlan"])
+	if v := a["vlan"].(int); v != 0 {
+		input.VlanA = api.Uint64FromInt(v)
 	}
 	uid, err := cfg.Client.CreateCloudVxc(input)
 	if err != nil {
@@ -198,12 +198,16 @@ func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
 	input := &api.CloudVxcUpdateInput{
-		InvoiceReference: api.String(d.Get("invoice_reference")),
-		Name:             api.String(d.Get("name")),
-		PartnerConfig:    expandVxcEndAws(b),
-		ProductUid:       api.String(d.Id()),
-		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-		VlanA:            api.Uint64FromInt(a["vlan"]),
+		Name:          api.String(d.Get("name")),
+		PartnerConfig: expandVxcEndAws(b),
+		ProductUid:    api.String(d.Id()),
+		RateLimit:     api.Uint64FromInt(d.Get("rate_limit")),
+	}
+	if v, ok := d.GetOk("invoice_reference"); ok {
+		input.InvoiceReference = api.String(v)
+	}
+	if v := a["vlan"].(int); v != 0 {
+		input.VlanA = api.Uint64FromInt(v)
 	}
 	if err := cfg.Client.UpdateCloudVxc(input); err != nil {
 		return err
