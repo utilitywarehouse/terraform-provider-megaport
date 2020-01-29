@@ -82,7 +82,7 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				Sensitive:    true,
-				ValidateFunc: validateAWSBGPAuthKey,
+				ValidateFunc: validateAwsBGPAuthKey,
 			},
 			"customer_asn": {
 				Type:     schema.TypeInt,
@@ -113,14 +113,14 @@ func flattenVxcEndAws(configProductUid string, v api.ProductAssociatedVxcEnd, r 
 	}}
 }
 
-func expandVxcEndAws(e map[string]interface{}) *api.PartnerConfigAWS {
-	pc := &api.PartnerConfigAWS{
-		AWSAccountID: api.String(e["aws_account_id"]),
+func expandVxcEndAws(e map[string]interface{}) *api.PartnerConfigAws {
+	pc := &api.PartnerConfigAws{
+		AwsAccountID: api.String(e["aws_account_id"]),
 		CustomerASN:  api.Uint64FromInt(e["customer_asn"]),
 		Type:         api.String(e["type"]),
 	}
 	if v := e["aws_connection_name"]; v != "" {
-		pc.AWSConnectionName = api.String(v)
+		pc.AwsConnectionName = api.String(v)
 	}
 	if v := e["aws_ip_address"]; v != "" {
 		pc.AmazonIPAddress = api.String(v)
@@ -261,14 +261,14 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 			if !compareNillableUints(input.VlanA, v.AEnd.Vlan) {
 				return nil, "", nil
 			}
-			pc := input.PartnerConfig.(*api.PartnerConfigAWS)
+			pc := input.PartnerConfig.(*api.PartnerConfigAws)
 			if !compareNillableStrings(pc.AmazonIPAddress, v.Resources.AwsVirtualInterface.AmazonIpAddress) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.AWSAccountID, v.Resources.AwsVirtualInterface.OwnerAccount) {
+			if !compareNillableStrings(pc.AwsAccountID, v.Resources.AwsVirtualInterface.OwnerAccount) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.AWSConnectionName, v.Resources.AwsVirtualInterface.Name) {
+			if !compareNillableStrings(pc.AwsConnectionName, v.Resources.AwsVirtualInterface.Name) {
 				return nil, "", nil
 			}
 			if !compareNillableStrings(pc.BGPAuthKey, v.Resources.AwsVirtualInterface.AuthKey) {

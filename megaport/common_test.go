@@ -12,27 +12,27 @@ import (
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
-func TestValidateAWSBGPAuthKey(t *testing.T) {
+func TestValidateAwsBGPAuthKey(t *testing.T) {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012346789"
 	short := acctest.RandStringFromCharSet(5, charset)
 	long := acctest.RandStringFromCharSet(25, charset)
 	whitespace := acctest.RandStringFromCharSet(5, charset) + " " + acctest.RandStringFromCharSet(5, charset)
 	ok := acctest.RandStringFromCharSet(8, charset)
-	e, w := validateAWSBGPAuthKey(ok, "test_value")
+	e, w := validateAwsBGPAuthKey(ok, "test_value")
 	if len(e) > 0 || len(w) > 0 {
-		t.Errorf("validateAWSBGPAuthKey: %q failed validation, expected it to pass", ok)
+		t.Errorf("validateAwsBGPAuthKey: %q failed validation, expected it to pass", ok)
 	}
-	e, w = validateAWSBGPAuthKey(short, "test_value")
+	e, w = validateAwsBGPAuthKey(short, "test_value")
 	if len(e) == 0 && len(w) == 0 {
-		t.Errorf("validateAWSBGPAuthKey: %q passed validation, expected it to fail", short)
+		t.Errorf("validateAwsBGPAuthKey: %q passed validation, expected it to fail", short)
 	}
-	e, w = validateAWSBGPAuthKey(long, "test_value")
+	e, w = validateAwsBGPAuthKey(long, "test_value")
 	if len(e) == 0 && len(w) == 0 {
-		t.Errorf("validateAWSBGPAuthKey: %q passed validation, expected it to fail", long)
+		t.Errorf("validateAwsBGPAuthKey: %q passed validation, expected it to fail", long)
 	}
-	e, w = validateAWSBGPAuthKey(whitespace, "test_value")
+	e, w = validateAwsBGPAuthKey(whitespace, "test_value")
 	if len(e) == 0 && len(w) == 0 {
-		t.Errorf("validateAWSBGPAuthKey: %q passed validation, expected it to fail", whitespace)
+		t.Errorf("validateAwsBGPAuthKey: %q passed validation, expected it to fail", whitespace)
 	}
 }
 
