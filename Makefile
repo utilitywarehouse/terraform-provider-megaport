@@ -57,7 +57,7 @@ lint:
 		golangci-lint \
 		run \
 		-v \
-		--timeout=2m \
+		--timeout=5m \
 		./...
 
 providerlint:
@@ -92,7 +92,7 @@ testacc: fmtcheck
 ifdef TEST_COVER
 	$(eval TESTARGS=$(TESTARGS) -coverprofile=cover.out)
 endif
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -count=1 -timeout=10m -parallel=1
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -count=1 -timeout=15m -parallel=1
 ifdef TEST_COVER
 	go tool cover -html=cover.out
 	rm cover.out
