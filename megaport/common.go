@@ -60,7 +60,7 @@ func validateCIDRAddress(v interface{}, k string) (warns []string, errs []error)
 	return
 }
 
-func validateAWSBGPAuthKey(v interface{}, k string) (warns []string, errs []error) {
+func validateAwsBGPAuthKey(v interface{}, k string) (warns []string, errs []error) {
 	vv, ok := v.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected type of %s to be string", k))

@@ -193,34 +193,34 @@ type PartnerConfig interface {
 	toPayload() interface{}
 }
 
-type PartnerConfigAWS struct {
+type PartnerConfigAws struct {
 	AmazonIPAddress   *string
-	AWSConnectionName *string
-	AWSAccountID      *string
+	AwsConnectionName *string
+	AwsAccountID      *string
 	BGPAuthKey        *string
 	CustomerASN       *uint64
 	CustomerIPAddress *string
 	Type              *string
 }
 
-func (v *PartnerConfigAWS) connectType() string {
+func (v *PartnerConfigAws) connectType() string {
 	return "AWS"
 }
 
-func (v *PartnerConfigAWS) toPayload() interface{} {
-	return &vxcCreatePayloadPartnerConfigAWS{
+func (v *PartnerConfigAws) toPayload() interface{} {
+	return &vxcCreatePayloadPartnerConfigAws{
 		AmazonIpAddress:   v.AmazonIPAddress,
 		Asn:               v.CustomerASN,
 		AuthKey:           v.BGPAuthKey,
 		ConnectType:       String(v.connectType()),
 		CustomerIpAddress: v.CustomerIPAddress,
-		Name:              v.AWSConnectionName,
-		OwnerAccount:      v.AWSAccountID,
+		Name:              v.AwsConnectionName,
+		OwnerAccount:      v.AwsAccountID,
 		Type:              v.Type,
 	}
 }
 
-type vxcCreatePayloadPartnerConfigAWS struct {
+type vxcCreatePayloadPartnerConfigAws struct {
 	// AmazonAsn         *uint64 `json:",omitempty"`
 	AmazonIpAddress *string `json:"amazonIpAddress,omitempty"`
 	Asn             *uint64 `json:"asn,omitempty"`
