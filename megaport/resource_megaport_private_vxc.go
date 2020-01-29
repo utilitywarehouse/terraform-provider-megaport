@@ -83,15 +83,22 @@ func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) err
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
-	uid, err := cfg.Client.CreatePrivateVxc(&api.PrivateVxcCreateInput{
-		ProductUidA:      api.String(a["product_uid"]),
-		ProductUidB:      api.String(b["product_uid"]),
-		Name:             api.String(d.Get("name")),
-		InvoiceReference: api.String(d.Get("invoice_reference")),
-		VlanA:            api.Uint64FromInt(a["vlan"]),
-		VlanB:            api.Uint64FromInt(b["vlan"]),
-		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-	})
+	input := &api.PrivateVxcCreateInput{
+		ProductUidA: api.String(a["product_uid"]),
+		ProductUidB: api.String(b["product_uid"]),
+		Name:        api.String(d.Get("name")),
+		RateLimit:   api.Uint64FromInt(d.Get("rate_limit")),
+	}
+	if v, ok := d.GetOk("invoice_reference"); ok {
+		input.InvoiceReference = api.String(v)
+	}
+	if v := a["vlan"].(int); v != 0 {
+		input.VlanA = api.Uint64FromInt(v)
+	}
+	if v := b["vlan"].(int); v != 0 {
+		input.VlanB = api.Uint64FromInt(v)
+	}
+	uid, err := cfg.Client.CreatePrivateVxc(input)
 	if err != nil {
 		return err
 	}
@@ -107,14 +114,18 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
 	input := &api.PrivateVxcUpdateInput{
-		InvoiceReference: api.String(d.Get("invoice_reference")),
-		Name:             api.String(d.Get("name")),
-		ProductUid:       api.String(d.Id()),
-		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-		VlanA:            api.Uint64FromInt(a["vlan"]),
+		Name:       api.String(d.Get("name")),
+		ProductUid: api.String(d.Id()),
+		RateLimit:  api.Uint64FromInt(d.Get("rate_limit")),
 	}
-	if d.HasChange("b_end.0.vlan") {
-		input.VlanB = api.Uint64FromInt(b["vlan"])
+	if v, ok := d.GetOk("invoice_reference"); ok {
+		input.InvoiceReference = api.String(v)
+	}
+	if v := a["vlan"].(int); v != 0 {
+		input.VlanA = api.Uint64FromInt(v)
+	}
+	if v := b["vlan"].(int); v != 0 {
+		input.VlanB = api.Uint64FromInt(v)
 	}
 	if err := cfg.Client.UpdatePrivateVxc(input); err != nil {
 		return err
