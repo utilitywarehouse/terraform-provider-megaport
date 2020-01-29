@@ -155,7 +155,7 @@ func waitUntilVxcIsDeleted(client *api.Client, productUid string, timeout time.D
 					return v, "", nil
 				}
 			}
-			if initial.BEnd.Vlan > 0 && initial.Type() == api.VXCTypePrivate {
+			if initial.BEnd.Vlan > 0 && initial.Type() == api.VxcTypePrivate {
 				ok, err := client.GetPortVlanIdAvailable(initial.BEnd.ProductUid, initial.BEnd.Vlan)
 				if err != nil {
 					return v, "", err

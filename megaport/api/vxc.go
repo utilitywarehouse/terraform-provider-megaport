@@ -188,7 +188,6 @@ func (c *Client) UpdatePrivateVxc(v *PrivateVxcUpdateInput) error {
 	return c.update(*v.ProductUid, v)
 }
 
-
 type PartnerConfig interface {
 	connectType() string
 	toPayload() interface{}

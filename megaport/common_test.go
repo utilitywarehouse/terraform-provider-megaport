@@ -2,6 +2,7 @@ package megaport
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 
@@ -92,4 +93,35 @@ func testAccCheckResourceDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func testAccVxcSweeper(vxcType string) func(string) error {
+	return func(region string) error {
+		c, err := sharedClientForRegion(region)
+		if err != nil {
+			return fmt.Errorf("Error getting client: %s", err)
+		}
+		client := c.(*api.Client)
+		ports, err := client.ListPorts()
+		if err != nil {
+			return err
+		}
+		for _, p := range ports {
+			for _, v := range p.AssociatedVxcs {
+				if strings.HasPrefix(v.ProductName, "terraform_acctest_") && !client.IsResourceDeleted(v.ProvisioningStatus) {
+					vxc, err := client.GetVxc(v.ProductUid)
+					if err != nil {
+						return err
+					}
+					if vxc.Type() != vxcType {
+						continue
+					}
+					if err := client.DeleteVxc(vxc.ProductUid); err != nil {
+						log.Printf("[ERROR] Could not destroy VXC %q (%s) during sweep: %s", vxc.ProductName, vxc.ProductUid, err)
+					}
+				}
+			}
+		}
+		return nil
+	}
 }

@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	VXCTypePrivate = "private"
-	VXCTypeAWS     = "aws"
-	VXCTypePartner = "partner"
+	VxcTypePrivate = "private"
+	VxcTypeAws     = "aws"
+	VxcTypePartner = "partner"
 )
 
 // Some of the following types differ from examples seen in the documentation at
@@ -278,12 +278,12 @@ type ProductAssociatedVxc struct {
 
 func (v *ProductAssociatedVxc) Type() string {
 	if v.AEnd.OwnerUid == v.BEnd.OwnerUid {
-		return VXCTypePrivate
+		return VxcTypePrivate
 	}
 	if v.Resources.AwsVirtualInterface.ConnectType == "AWS" {
-		return VXCTypeAWS
+		return VxcTypeAws
 	}
-	return VXCTypePartner
+	return VxcTypePartner
 }
 
 type ProductAssociatedVxcEnd struct {
