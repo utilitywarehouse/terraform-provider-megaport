@@ -1,10 +1,10 @@
 package megaport
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -30,28 +30,16 @@ func resourceMegaportPort() *schema.Resource {
 				Required: true,
 			},
 			"speed": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (warns []string, errs []error) {
-					vv := v.(int)
-					if vv != 1000 && vv != 10000 && vv != 100000 {
-						errs = append(errs, fmt.Errorf("%q must be 1000, 10000 or 100000 (Mbps), subject to availability, got %d", k, vv))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntInSlice([]int{1000, 10000, 100000}),
 			},
 			"term": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (warns []string, errs []error) {
-					vv := v.(int)
-					if vv != 1 && vv != 12 && vv != 24 && vv != 36 {
-						errs = append(errs, fmt.Errorf("%q must be 1, 12, 24 or 36, got %d", k, vv))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntInSlice([]int{1, 12, 24, 36}),
 			},
 			"invoice_reference": {
 				Type:     schema.TypeString,

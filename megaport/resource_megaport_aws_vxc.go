@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -75,7 +76,7 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateCIDRAddress,
+				ValidateFunc: validation.IsCIDR,
 			},
 			"bgp_auth_key": {
 				Type:         schema.TypeString,
@@ -92,7 +93,7 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateCIDRAddress,
+				ValidateFunc: validation.IsCIDR,
 			},
 			"type": resourceAttributePrivatePublic(),
 		},

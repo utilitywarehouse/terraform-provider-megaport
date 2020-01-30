@@ -33,6 +33,7 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
 					"MEGAPORT_API_ENDPOINT",
 				}, api.EndpointProduction),
+				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 		},
 
