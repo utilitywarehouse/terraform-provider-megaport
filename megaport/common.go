@@ -3,7 +3,6 @@ package megaport
 import (
 	"fmt"
 	"log"
-	"net"
 	"strings"
 	"time"
 
@@ -45,19 +44,6 @@ func resourceMegaportVxcEndElem() *schema.Resource {
 			},
 		},
 	}
-}
-
-func validateCIDRAddress(v interface{}, k string) (warns []string, errs []error) {
-	vv, ok := v.(string)
-	if !ok {
-		errs = append(errs, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-	_, _, err := net.ParseCIDR(vv)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("expected %q to be a valid IPv4 CIDR, got %v: %v", k, vv, err))
-	}
-	return
 }
 
 func validateAwsBGPAuthKey(v interface{}, k string) (warns []string, errs []error) {
