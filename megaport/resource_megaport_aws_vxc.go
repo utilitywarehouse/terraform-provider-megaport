@@ -116,7 +116,7 @@ func flattenVxcEndAws(configProductUid string, v api.ProductAssociatedVxcEnd, r 
 
 func expandVxcEndAws(e map[string]interface{}) *api.PartnerConfigAws {
 	pc := &api.PartnerConfigAws{
-		AwsAccountID: api.String(e["aws_account_id"]),
+		AwsAccountId: api.String(e["aws_account_id"]),
 		CustomerASN:  api.Uint64FromInt(e["customer_asn"]),
 		Type:         api.String(e["type"]),
 	}
@@ -266,7 +266,7 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 			if !compareNillableStrings(pc.AmazonIPAddress, v.Resources.AwsVirtualInterface.AmazonIpAddress) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.AwsAccountID, v.Resources.AwsVirtualInterface.OwnerAccount) {
+			if !compareNillableStrings(pc.AwsAccountId, v.Resources.AwsVirtualInterface.OwnerAccount) {
 				return nil, "", nil
 			}
 			if !compareNillableStrings(pc.AwsConnectionName, v.Resources.AwsVirtualInterface.Name) {

@@ -196,7 +196,7 @@ type PartnerConfig interface {
 type PartnerConfigAws struct {
 	AmazonIPAddress   *string
 	AwsConnectionName *string
-	AwsAccountID      *string
+	AwsAccountId      *string
 	BGPAuthKey        *string
 	CustomerASN       *uint64
 	CustomerIPAddress *string
@@ -215,7 +215,7 @@ func (v *PartnerConfigAws) toPayload() interface{} {
 		ConnectType:       String(v.connectType()),
 		CustomerIpAddress: v.CustomerIPAddress,
 		Name:              v.AwsConnectionName,
-		OwnerAccount:      v.AwsAccountID,
+		OwnerAccount:      v.AwsAccountId,
 		Type:              v.Type,
 	}
 }
