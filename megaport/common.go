@@ -93,8 +93,7 @@ func compareNillableUints(a *uint64, b uint64) bool {
 
 func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
-		Pending: []string{api.ProductStatusDeployable},
-		Target:  []string{api.ProductStatusConfigured, api.ProductStatusLive},
+		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
 			v, err := client.GetVxc(productUid)
 			if err != nil {

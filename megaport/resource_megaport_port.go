@@ -98,6 +98,9 @@ func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	d.SetId(*uid)
+	if err := waitUntilPortIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
+		return err
+	}
 	return resourceMegaportPortRead(d, m)
 }
 
@@ -109,6 +112,9 @@ func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
 		ProductUid:            api.String(d.Id()),
 		MarketplaceVisibility: api.Bool(d.Get("marketplace_visibility") == "public"),
 	}); err != nil {
+		return err
+	}
+	if err := waitUntilPortIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return err
 	}
 	return resourceMegaportPortRead(d, m)
@@ -124,4 +130,27 @@ func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
 	}
 	return nil
+}
+
+func waitUntilPortIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+	scc := &resource.StateChangeConf{
+		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
+		Refresh: func() (interface{}, string, error) {
+			v, err := client.GetPort(productUid)
+			if err != nil {
+				log.Printf("[ERROR] Could not retrieve Port while waiting for setup to finish: %v", err)
+				return nil, "", err
+			}
+			if v == nil {
+				return nil, "", nil
+			}
+			return v, v.ProvisioningStatus, nil
+		},
+		Timeout:    timeout,
+		MinTimeout: 10 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	log.Printf("[INFO] Waiting for Port (%s) to be configured", productUid)
+	_, err := scc.WaitForState()
+	return err
 }
