@@ -47,4 +47,3 @@ will be listed on the Megaport Marketplace.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique product id of the port.
-* `associated_vxcs` - A list of all the VXCs associated with this port.

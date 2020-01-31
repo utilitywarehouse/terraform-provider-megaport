@@ -45,12 +45,6 @@ func resourceMegaportPort() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"associated_vxcs": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem:     resourceMegaportPrivateVxc(),
-				Set:      schema.HashResource(resourceMegaportPrivateVxc()),
-			},
 			"marketplace_visibility": resourceAttributePrivatePublic(),
 		},
 	}
@@ -77,9 +71,6 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
-		return err
-	}
-	if err := d.Set("associated_vxcs", schema.NewSet(schema.HashResource(resourceMegaportPrivateVxc()), flattenVxcList(p.AssociatedVxcs))); err != nil {
 		return err
 	}
 	if err := d.Set("marketplace_visibility", "private"); err != nil {
@@ -133,21 +124,4 @@ func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
 		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")
 	}
 	return nil
-}
-
-func flattenVxc(v api.ProductAssociatedVxc) interface{} {
-	return map[string]interface{}{
-		"name":       v.ProductName,
-		"rate_limit": int(v.RateLimit),
-		"a_end":      flattenVxcEnd(v.AEnd),
-		"b_end":      flattenVxcEnd(v.BEnd),
-	}
-}
-
-func flattenVxcList(vs []api.ProductAssociatedVxc) []interface{} {
-	ret := make([]interface{}, len(vs))
-	for i, v := range vs {
-		ret[i] = flattenVxc(v)
-	}
-	return ret
 }
