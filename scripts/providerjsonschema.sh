@@ -12,7 +12,7 @@ go build -o $tmpd .
         --interactive \
         --rm \
         --tty \
-        --volume "${tmpd}":/out \
+        --volume "${tmpd}:/out" \
         --workdir /out \
         hashicorp/terraform \
         init 2>&1 >/dev/null
@@ -21,7 +21,7 @@ go build -o $tmpd .
         --interactive \
         --rm \
         --tty \
-        --volume "${tmpd}":/out \
+        --volume "${tmpd}:/out" \
         --workdir /out \
         hashicorp/terraform \
         providers schema -json > schema.json
