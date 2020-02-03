@@ -2,6 +2,7 @@
 
 set -eou pipefail
 
+echo "==> Extracting provider json schema..."
 tmpd=$(mktemp -d)
 go build -o $tmpd .
 (
@@ -29,4 +30,20 @@ go build -o $tmpd .
     rm main.tf
     rm terraform-provider-${PROVIDER_NAME}
 )
-echo $tmpd
+
+echo "==> Checking docs with tfproviderdocs..."
+
+docker run \
+    --interactive \
+    --rm \
+    --tty \
+    --volume "${PWD}/website:/terraform-provider-megaport/website" \
+    --volume "${tmpd}:/provider-schema" \
+    --workdir /terraform-provider-megaport \
+    bflad/tfproviderdocs \
+    check \
+    -allowed-resource-subcategories=resources,datasources \
+    -providers-schema-json=/provider-schema/schema.json \
+    -require-resource-subcategory
+
+rm -rf "${tmpd}"
