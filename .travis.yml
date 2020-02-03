@@ -1,0 +1,33 @@
+dist: bionic
+sudo: required
+services:
+- docker
+language: go
+go:
+- "1.13.x"
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - go: tip
+  include:
+    - go: "1.13.x"
+      name: "Code Lint"
+      script: make lint
+    - go: "1.13.x"
+      name: "Code UnitTest"
+      script: make test
+    - go: "1.13.x"
+      name: "Dependencies"
+      script: make depscheck
+    - go: "1.13.x"
+      name: "Website"
+      script:
+        - make docscheck
+        - make website-test
+        - make website-lint
+
+branches:
+  only:
+    - master
+
