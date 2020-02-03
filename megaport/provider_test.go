@@ -25,6 +25,9 @@ func TestProvider(t *testing.T) {
 	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("Provider.InternalValidate(): %s", err)
 	}
+	if os.Getenv("TF_ACC") == "" {
+		return
+	}
 	testAccPreCheck(t)
 	c := testAccProvider.Meta()
 	if c == nil {
