@@ -24,6 +24,7 @@ matrix:
       name: "Website"
       script:
         - make docscheck
+        - make websitefmtcheck
         - make website-test
         - make website-lint
 
