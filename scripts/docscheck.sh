@@ -25,10 +25,10 @@ go build -o "${tmpd}" .
         --volume "${tmpd}:/out" \
         --workdir /out \
         hashicorp/terraform \
-        providers schema -json > schema.json
+        providers schema -json >schema.json
 
-    rm main.tf
-    rm "terraform-provider-${PROVIDER_NAME}"
+    sudo rm -rf .terraform
+    rm main.tf "terraform-provider-${PROVIDER_NAME}"
 )
 
 echo "==> Checking docs with tfproviderdocs..."
