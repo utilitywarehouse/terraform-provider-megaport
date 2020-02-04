@@ -6,6 +6,9 @@ language: go
 go:
 - "1.13.x"
 
+env:
+  global: CGO_ENABLED=0
+
 matrix:
   fast_finish: true
   allow_failures:

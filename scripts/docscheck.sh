@@ -4,9 +4,9 @@ set -eou pipefail
 
 echo "==> Extracting provider json schema..."
 tmpd=$(mktemp -d)
-go build -o $tmpd .
+go build -o "${tmpd}" .
 (
-    cd $tmpd
+    cd "${tmpd}"
     echo "provider ${PROVIDER_NAME} {}" > main.tf
 
     docker run \
@@ -16,7 +16,7 @@ go build -o $tmpd .
         --volume "${tmpd}:/out" \
         --workdir /out \
         hashicorp/terraform \
-        init 2>&1 >/dev/null
+        init >/dev/null 2>&1
 
     docker run \
         --interactive \
@@ -28,7 +28,7 @@ go build -o $tmpd .
         providers schema -json > schema.json
 
     rm main.tf
-    rm terraform-provider-${PROVIDER_NAME}
+    rm "terraform-provider-${PROVIDER_NAME}"
 )
 
 echo "==> Checking docs with tfproviderdocs..."
