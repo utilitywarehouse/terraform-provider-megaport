@@ -8,7 +8,7 @@ import (
 const (
 	VxcTypePrivate = "private"
 	VxcTypeAws     = "aws"
-	VxcTypeGoogle  = "google"
+	VxcTypeGcp     = "gcp"
 	VxcTypePartner = "partner"
 )
 
@@ -285,8 +285,8 @@ func (v *ProductAssociatedVxc) Type() string {
 	if c, ok := v.Resources.CspConnection.(*ProductAssociatedVxcResourcesCspConnectionAws); ok && c.ConnectType == vxcConnectTypeAws {
 		return VxcTypeAws
 	}
-	if c, ok := v.Resources.CspConnection.(*ProductAssociatedVxcResourcesCspConnectionGoogle); ok && c.ConnectType == vxcConnectTypeGoogle {
-		return VxcTypeGoogle
+	if c, ok := v.Resources.CspConnection.(*ProductAssociatedVxcResourcesCspConnectionGcp); ok && c.ConnectType == vxcConnectTypeGoogle {
+		return VxcTypeGcp
 	}
 	return VxcTypePartner
 }
@@ -327,7 +327,7 @@ func (pr *ProductAssociatedVxcResources) UnmarshalJSON(b []byte) (err error) {
 	case vxcConnectTypeAws:
 		r.CspConnection = &ProductAssociatedVxcResourcesCspConnectionAws{}
 	case vxcConnectTypeGoogle:
-		r.CspConnection = &ProductAssociatedVxcResourcesCspConnectionGoogle{}
+		r.CspConnection = &ProductAssociatedVxcResourcesCspConnectionGcp{}
 	case "":
 	default:
 		return fmt.Errorf("Cannot unmarshal resources: csp_connection has unknown connect type %q", t)
@@ -391,8 +391,20 @@ func (pr *ProductAssociatedVxcResourcesCspConnectionAws) UnmarshalJSON(b []byte)
 	return nil
 }
 
-type ProductAssociatedVxcResourcesCspConnectionGoogle struct {
-	ConnectType string
+type ProductAssociatedVxcResourcesCspConnectionGcp struct {
+	Bandwidth    uint64
+	Bandwidths   []uint64
+	ConnectType  string
+	CspName      string `json:"csp_name"`
+	Megaports    []ProductAssociatedVxcResourcesCspConnectionGcpMegaports
+	PairingKey   string
+	ResourceName string `json:"resource_name"`
+	ResourceType string `json:"resource_type"`
+}
+
+type ProductAssociatedVxcResourcesCspConnectionGcpMegaports struct {
+	Port uint64
+	Vxc  uint64
 }
 
 type MegaportCharges struct {

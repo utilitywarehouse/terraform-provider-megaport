@@ -239,6 +239,26 @@ type vxcCreatePayloadPartnerConfigAws struct {
 	Type *string `json:"type,omitempty"`
 }
 
+type PartnerConfigGcp struct {
+	PairingKey *string
+}
+
+func (v *PartnerConfigGcp) connectType() string {
+	return "GOOGLE"
+}
+
+func (v *PartnerConfigGcp) toPayload() interface{} {
+	return &vxcCreatePayloadPartnerConfigGcp{
+		ConnectType: String(v.connectType()),
+		PairingKey:  String(v.PairingKey),
+	}
+}
+
+type vxcCreatePayloadPartnerConfigGcp struct {
+	ConnectType *string `json:"connectType,omitempty"`
+	PairingKey  *string `json:"pairingKey,omitempty"`
+}
+
 type CloudVxcCreateInput struct {
 	InvoiceReference *string
 	Name             *string
