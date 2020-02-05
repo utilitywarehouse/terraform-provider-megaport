@@ -29,7 +29,7 @@ func dataSourceMegaportPartnerPort() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "GOOGLE"}, false),
 			},
 			"location_id": {
 				Type:     schema.TypeInt,
