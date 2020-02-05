@@ -2,11 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 const (
 	VxcTypePrivate = "private"
 	VxcTypeAws     = "aws"
+	VxcTypeGoogle  = "google"
 	VxcTypePartner = "partner"
 )
 
@@ -280,8 +282,11 @@ func (v *ProductAssociatedVxc) Type() string {
 	if v.AEnd.OwnerUid == v.BEnd.OwnerUid {
 		return VxcTypePrivate
 	}
-	if v.Resources.AwsVirtualInterface.ConnectType == "AWS" {
+	if c, ok := v.Resources.CspConnection.(*ProductAssociatedVxcResourcesCspConnectionAws); ok && c.ConnectType == vxcConnectTypeAws {
 		return VxcTypeAws
+	}
+	if c, ok := v.Resources.CspConnection.(*ProductAssociatedVxcResourcesCspConnectionGoogle); ok && c.ConnectType == vxcConnectTypeGoogle {
+		return VxcTypeGoogle
 	}
 	return VxcTypePartner
 }
@@ -305,25 +310,51 @@ type ProductAssociatedVxcApproval struct {
 }
 
 type ProductAssociatedVxcResources struct {
-	AwsVirtualInterface ProductAssociatedVxcResourcesAwsVirtualInterface `json:"csp_connection"`
+	CspConnection interface{} `json:"csp_connection"`
 }
 
-type ProductAssociatedVxcResourcesAwsVirtualInterface struct {
+type productAssociatedVxcResources ProductAssociatedVxcResources
+
+func (pr *ProductAssociatedVxcResources) UnmarshalJSON(b []byte) (err error) {
+	r := productAssociatedVxcResources{}
+	v := struct {
+		CspConnection struct{ ConnectType string } `json:"csp_connection"`
+	}{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	switch t := v.CspConnection.ConnectType; t {
+	case vxcConnectTypeAws:
+		r.CspConnection = &ProductAssociatedVxcResourcesCspConnectionAws{}
+	case vxcConnectTypeGoogle:
+		r.CspConnection = &ProductAssociatedVxcResourcesCspConnectionGoogle{}
+	case "":
+	default:
+		return fmt.Errorf("Cannot unmarshal resources: csp_connection has unknown connect type %q", t)
+	}
+	if err := json.Unmarshal(b, &r); err != nil {
+		return err
+	}
+	*pr = ProductAssociatedVxcResources(r)
+	return nil
+}
+
+type ProductAssociatedVxcResourcesCspConnectionAws struct {
 	Account         string
 	AmazonAsn       uint64 `json:"-"`
+	AmazonAddress   string `json:"amazon_address"`
 	AmazonIpAddress string
-	AmazonAddress   string `json:"Amazon_address"`
-	// Amazon_Asn       uint64 `json:"Amazon_asn"`
+	// Amazon_Asn uint64 `json:"amazon_asn"`
 	Asn     uint64 `json:"-"`
 	AuthKey string
 	// Auth_key string `json:"Auth_key"`
 	ConnectType       string
+	CustomerAddress   string `json:"customer_address"`
 	CustomerIpAddress string
-	// Customer_address string `json:"Customer_address"`
-	Id           uint64 `json:"-"`
-	Name         string
-	OwnerAccount string
-	PeerAsn      uint64 `json:"-"`
+	Id                uint64 `json:"-"`
+	Name              string
+	OwnerAccount      string
+	PeerAsn           uint64 `json:"-"`
 	// Prefixes // null?
 	ResourceName string `json:"Resource_name"`
 	ResourceType string `json:"Resource_type"`
@@ -332,7 +363,7 @@ type ProductAssociatedVxcResourcesAwsVirtualInterface struct {
 	Vlan         uint64 `json:"-"`
 }
 
-type productAssociatedVxcResourcesAwsVirtualInterfaceFloats struct {
+type productAssociatedVxcResourcesCspConnectionAwsFloats struct {
 	AmazonAsn float64 `json:"amazonAsn"`
 	Asn       float64 `json:"asn"`
 	Id        float64 `json:"id"`
@@ -340,15 +371,15 @@ type productAssociatedVxcResourcesAwsVirtualInterfaceFloats struct {
 	Vlan      float64 `json:"vlan"`
 }
 
-type productAssociatedVxcResourcesAwsVirtualInterface ProductAssociatedVxcResourcesAwsVirtualInterface
+type productAssociatedVxcResourcesCspConnectionAws ProductAssociatedVxcResourcesCspConnectionAws
 
-func (pr *ProductAssociatedVxcResourcesAwsVirtualInterface) UnmarshalJSON(b []byte) (err error) {
-	v := productAssociatedVxcResourcesAwsVirtualInterface{}
+func (pr *ProductAssociatedVxcResourcesCspConnectionAws) UnmarshalJSON(b []byte) (err error) {
+	v := productAssociatedVxcResourcesCspConnectionAws{}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
-	*pr = ProductAssociatedVxcResourcesAwsVirtualInterface(v)
-	vf := productAssociatedVxcResourcesAwsVirtualInterfaceFloats{}
+	*pr = ProductAssociatedVxcResourcesCspConnectionAws(v)
+	vf := productAssociatedVxcResourcesCspConnectionAwsFloats{}
 	if err := json.Unmarshal(b, &vf); err != nil {
 		return err
 	}
@@ -358,6 +389,10 @@ func (pr *ProductAssociatedVxcResourcesAwsVirtualInterface) UnmarshalJSON(b []by
 	pr.PeerAsn = uint64(vf.PeerAsn)
 	pr.Vlan = uint64(vf.Vlan)
 	return nil
+}
+
+type ProductAssociatedVxcResourcesCspConnectionGoogle struct {
+	ConnectType string
 }
 
 type MegaportCharges struct {

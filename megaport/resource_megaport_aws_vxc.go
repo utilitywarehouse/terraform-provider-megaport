@@ -100,17 +100,18 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 	}
 }
 
-func flattenVxcEndAws(configProductUid string, v api.ProductAssociatedVxcEnd, r api.ProductAssociatedVxcResources) []interface{} {
+func flattenVxcEndAws(configProductUid string, v *api.ProductAssociatedVxc) []interface{} {
+	cc := v.Resources.CspConnection.(*api.ProductAssociatedVxcResourcesCspConnectionAws)
 	return []interface{}{map[string]interface{}{
 		"product_uid":           configProductUid,
-		"connected_product_uid": v.ProductUid,
-		"aws_connection_name":   r.AwsVirtualInterface.Name,
-		"aws_account_id":        r.AwsVirtualInterface.OwnerAccount,
-		"aws_ip_address":        r.AwsVirtualInterface.AmazonIpAddress,
-		"bgp_auth_key":          r.AwsVirtualInterface.AuthKey,
-		"customer_asn":          int(r.AwsVirtualInterface.Asn),
-		"customer_ip_address":   r.AwsVirtualInterface.CustomerIpAddress,
-		"type":                  strings.ToLower(r.AwsVirtualInterface.Type),
+		"connected_product_uid": v.BEnd.ProductUid,
+		"aws_connection_name":   cc.Name,
+		"aws_account_id":        cc.OwnerAccount,
+		"aws_ip_address":        cc.AmazonIpAddress,
+		"bgp_auth_key":          cc.AuthKey,
+		"customer_asn":          int(cc.Asn),
+		"customer_ip_address":   cc.CustomerIpAddress,
+		"type":                  strings.ToLower(cc.Type),
 	}}
 }
 
@@ -157,7 +158,7 @@ func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	puid := d.Get("b_end").([]interface{})[0].(map[string]interface{})["product_uid"].(string)
-	if err := d.Set("b_end", flattenVxcEndAws(puid, p.BEnd, p.Resources)); err != nil {
+	if err := d.Set("b_end", flattenVxcEndAws(puid, p)); err != nil {
 		return err
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
@@ -263,25 +264,26 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 				return nil, "", nil
 			}
 			pc := input.PartnerConfig.(*api.PartnerConfigAws)
-			if !compareNillableStrings(pc.AmazonIPAddress, v.Resources.AwsVirtualInterface.AmazonIpAddress) {
+			cc := v.Resources.CspConnection.(*api.ProductAssociatedVxcResourcesCspConnectionAws)
+			if !compareNillableStrings(pc.AmazonIPAddress, cc.AmazonIpAddress) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.AwsAccountId, v.Resources.AwsVirtualInterface.OwnerAccount) {
+			if !compareNillableStrings(pc.AwsAccountId, cc.OwnerAccount) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.AwsConnectionName, v.Resources.AwsVirtualInterface.Name) {
+			if !compareNillableStrings(pc.AwsConnectionName, cc.Name) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.BGPAuthKey, v.Resources.AwsVirtualInterface.AuthKey) {
+			if !compareNillableStrings(pc.BGPAuthKey, cc.AuthKey) {
 				return nil, "", nil
 			}
-			if !compareNillableUints(pc.CustomerASN, v.Resources.AwsVirtualInterface.Asn) {
+			if !compareNillableUints(pc.CustomerASN, cc.Asn) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.CustomerIPAddress, v.Resources.AwsVirtualInterface.CustomerIpAddress) {
+			if !compareNillableStrings(pc.CustomerIPAddress, cc.CustomerIpAddress) {
 				return nil, "", nil
 			}
-			if !compareNillableStrings(pc.Type, strings.ToLower(v.Resources.AwsVirtualInterface.Type)) {
+			if !compareNillableStrings(pc.Type, strings.ToLower(cc.Type)) {
 				return nil, "", nil
 			}
 			return v, v.ProvisioningStatus, nil

@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+const (
+	vxcConnectTypeAws    = "AWS"
+	vxcConnectTypeGoogle = "GOOGLE"
+)
+
 type networkDesignInput interface {
 	toPayload() ([]byte, error)
 	productType() string
