@@ -114,8 +114,10 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 		if err != nil {
 			return err
 		}
+		if err := d.Set("bandwidths", []int{}); err != nil {
+			return err
+		}
 		d.SetId(p.ProductUid)
-		d.Set("bandwidths", []int{})
 		return nil
 	}
 	if v, ok := d.GetOk("marketplace"); ok {
@@ -126,8 +128,10 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 		if err != nil {
 			return err
 		}
+		if err := d.Set("bandwidths", []int{}); err != nil {
+			return err
+		}
 		d.SetId(p.ProductUid)
-		d.Set("bandwidths", []int{})
 		return nil
 	}
 	if v, ok := d.GetOk("gcp"); ok {
@@ -139,8 +143,10 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 		if err != nil {
 			return err
 		}
+		if err := d.Set("bandwidths", bandwidths); err != nil { // apparently it's fine to use []uint64 here
+			return err
+		}
 		d.SetId(p.ProductUid)
-		d.Set("bandwidths", bandwidths) // apparently it's fine to use []uint64 here
 		return nil
 	}
 	return nil
