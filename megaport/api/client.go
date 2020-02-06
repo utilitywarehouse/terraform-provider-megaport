@@ -99,6 +99,22 @@ func (c *Client) GetMegaports() ([]*Megaport, error) {
 	return data, nil
 }
 
+func (c *Client) GetMegaportsForGcpPairingKey(pairingKey string) ([]*MegaportCloud, []uint64, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v2/secure/google/%s", c.BaseURL, pairingKey), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	data := struct {
+		Bandwidths   []uint64
+		Megaports    []*MegaportCloud
+		ResourceType string `json:"resource_type"`
+	}{}
+	if err := c.do(req, &data); err != nil {
+		return nil, nil, err
+	}
+	return data.Megaports, data.Bandwidths, nil
+}
+
 func (c *Client) GetInternetExchanges(locationId uint64) ([]*InternetExchange, error) {
 	v := url.Values{}
 	v.Set("locationId", strconv.FormatUint(locationId, 10))

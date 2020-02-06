@@ -25,21 +25,64 @@ func dataSourceMegaportPartnerPort() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsValidRegExp,
 			},
-			"connect_type": {
-				Type:         schema.TypeString,
+			"aws": {
+				Type:         schema.TypeList,
+				MaxItems:     1,
 				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "GOOGLE"}, false),
+				ExactlyOneOf: []string{"aws", "gcp", "marketplace"},
+				Elem:         dataSourceMegaportPartnerPortMarketplace(),
 			},
+			"gcp": {
+				Type:         schema.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"aws", "gcp", "marketplace"},
+				Elem:         dataSourceMegaportPartnerPortGcp(),
+			},
+			"marketplace": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"aws", "marketplace"},
+				Elem:          dataSourceMegaportPartnerPortMarketplace(),
+			},
+			"bandwidths": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+				Computed: true,
+			},
+		},
+	}
+}
+
+func dataSourceMegaportPartnerPortMarketplace() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
 			"location_id": {
 				Type:     schema.TypeInt,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
 			},
 			"vxc_permitted": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
+				ForceNew: true,
+			},
+		},
+	}
+}
+
+func dataSourceMegaportPartnerPortGcp() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"pairing_key": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[[:xdigit:]]{8}-([[:xdigit:]]{4}-){3}[[:xdigit:]]{12}\/[\w]+-[\w]+\d\/\d$`), "Invalid GCP pairing key format"),
 			},
 		},
 	}
@@ -62,37 +105,68 @@ func dataSourceUpdatePartnerPorts(c *api.Client) error {
 
 func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	if err := dataSourceUpdatePartnerPorts(cfg.Client); err != nil {
-		return err
+	nameRegex := d.Get("name_regex").(string)
+	if v, ok := d.GetOk("aws"); ok {
+		if err := dataSourceUpdatePartnerPorts(cfg.Client); err != nil {
+			return err
+		}
+		p, err := filterPartnerPorts(megaportPartnerPorts, "AWS", nameRegex, expandFilters(v))
+		if err != nil {
+			return err
+		}
+		d.SetId(p.ProductUid)
+		d.Set("bandwidths", []int{})
+		return nil
 	}
-	unfiltered := megaportPartnerPorts
+	if v, ok := d.GetOk("marketplace"); ok {
+		if err := dataSourceUpdatePartnerPorts(cfg.Client); err != nil {
+			return err
+		}
+		p, err := filterPartnerPorts(megaportPartnerPorts, "DEFAULT", nameRegex, expandFilters(v))
+		if err != nil {
+			return err
+		}
+		d.SetId(p.ProductUid)
+		d.Set("bandwidths", []int{})
+		return nil
+	}
+	if v, ok := d.GetOk("gcp"); ok {
+		ports, bandwidths, err := cfg.Client.GetMegaportsForGcpPairingKey(expandFilters(v)["pairing_key"].(string))
+		if err != nil {
+			return err
+		}
+		p, err := filterCloudPartnerPorts(ports, nameRegex)
+		if err != nil {
+			return err
+		}
+		d.SetId(p.ProductUid)
+		d.Set("bandwidths", bandwidths) // apparently it's fine to use []uint64 here
+		return nil
+	}
+	return nil
+}
+
+func expandFilters(v interface{}) map[string]interface{} {
+	return v.([]interface{})[0].(map[string]interface{})
+}
+
+func filterPartnerPorts(ports []*api.Megaport, connectType, nameRegex string, d map[string]interface{}) (*api.Megaport, error) {
+	unfiltered := ports
 	filtered := []*api.Megaport{}
-	vp := d.Get("vxc_permitted")
 	for _, port := range unfiltered {
-		if port.VxcPermitted == vp.(bool) {
+		if port.ConnectType == connectType {
 			filtered = append(filtered, port)
 		}
 	}
-	if nameRegex, ok := d.GetOk("name_regex"); ok {
-		unfiltered = filtered
-		filtered = []*api.Megaport{}
-		nr := regexp.MustCompile(nameRegex.(string))
-		for _, port := range unfiltered {
-			if nr.MatchString(port.Title) {
-				filtered = append(filtered, port)
-			}
+	unfiltered = filtered
+	filtered = []*api.Megaport{}
+	nr := regexp.MustCompile(nameRegex)
+	for _, port := range unfiltered {
+		if nr.MatchString(port.Title) {
+			filtered = append(filtered, port)
 		}
 	}
-	if ct, ok := d.GetOk("connect_type"); ok {
-		unfiltered = filtered
-		filtered = []*api.Megaport{}
-		for _, port := range unfiltered {
-			if port.ConnectType == ct.(string) {
-				filtered = append(filtered, port)
-			}
-		}
-	}
-	if lid, ok := d.GetOk("location_id"); ok {
+	if lid, ok := d["location_id"]; ok {
 		unfiltered = filtered
 		filtered = []*api.Megaport{}
 		for _, port := range unfiltered {
@@ -101,12 +175,37 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 			}
 		}
 	}
+	if vp, ok := d["vxc_permitted"]; ok {
+		unfiltered = filtered
+		filtered = []*api.Megaport{}
+		for _, port := range unfiltered {
+			if port.VxcPermitted == vp.(bool) {
+				filtered = append(filtered, port)
+			}
+		}
+	}
 	if len(filtered) < 1 {
-		return fmt.Errorf("No partner ports were found.")
+		return nil, fmt.Errorf("No ports were found. You might want to use a less specific query.")
 	}
 	if len(filtered) > 1 {
-		return fmt.Errorf("Multiple partner ports were found. Please use a more specific query.")
+		return nil, fmt.Errorf("Multiple ports were found. Please use a more specific query.")
 	}
-	d.SetId(filtered[0].ProductUid)
-	return nil
+	return filtered[0], nil
+}
+
+func filterCloudPartnerPorts(ports []*api.MegaportCloud, nameRegex string) (*api.MegaportCloud, error) {
+	filtered := []*api.MegaportCloud{}
+	nr := regexp.MustCompile(nameRegex)
+	for _, port := range ports {
+		if nr.MatchString(port.Name) {
+			filtered = append(filtered, port)
+		}
+	}
+	if len(filtered) < 1 {
+		return nil, fmt.Errorf("No ports were found. You might want to use a less specific query.")
+	}
+	if len(filtered) > 1 {
+		return nil, fmt.Errorf("Multiple ports were found. Please use a more specific query.")
+	}
+	return filtered[0], nil
 }

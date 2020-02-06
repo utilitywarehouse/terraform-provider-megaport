@@ -78,6 +78,24 @@ type Megaport struct {
 	VxcPermitted  bool
 }
 
+type MegaportCloud struct {
+	CompanyName string
+	CompanyId   uint64
+	CompanyUid  string
+	Country     string
+	Description string
+	LocationId  uint64
+	Name        string
+	NServiceId  uint64
+	Port        uint64
+	PortSpeed   uint64
+	ProductId   uint64
+	ProductUid  string
+	State       string      // This refers to the geographical location
+	Type        string      // Potentially only used for Oracle ports
+	Vxc         interface{} // TODO: what is the appropriate type?
+}
+
 type InternetExchange struct {
 	ASN           uint64
 	Description   string
