@@ -4,8 +4,10 @@ data "megaport_location" "aws" {
 
 data "megaport_partner_port" "aws" {
   name_regex   = "eu-west-1"
-  connect_type = "AWS"
-  location_id  = data.megaport_location.aws.id
+
+  aws {
+    location_id  = data.megaport_location.aws.id
+  }
 }
 
 data "megaport_location" "foo" {

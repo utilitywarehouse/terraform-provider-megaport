@@ -250,7 +250,7 @@ func (v *PartnerConfigGcp) connectType() string {
 func (v *PartnerConfigGcp) toPayload() interface{} {
 	return &vxcCreatePayloadPartnerConfigGcp{
 		ConnectType: String(v.connectType()),
-		PairingKey:  String(v.PairingKey),
+		PairingKey:  v.PairingKey,
 	}
 }
 
