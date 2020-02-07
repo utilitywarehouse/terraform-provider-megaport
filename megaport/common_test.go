@@ -80,6 +80,8 @@ func testAccCheckResourceDestroy(s *terraform.State) error {
 			}
 		case "megaport_aws_vxc":
 			fallthrough
+		case "megaport_gcp_vxc":
+			fallthrough
 		case "megaport_private_vxc":
 			v, err := cfg.Client.GetVxc(rs.Primary.ID)
 			if err != nil {
