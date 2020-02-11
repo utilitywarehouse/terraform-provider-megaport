@@ -56,10 +56,10 @@ type LocationAddress struct {
 }
 
 type LocationProducts struct {
-	MCR        bool
-	MCRVersion uint64
-	MCR1       []uint64
-	MCR2       []uint64
+	Mcr        bool
+	McrVersion uint64
+	Mcr1       []uint64
+	Mcr2       []uint64
 	Megaport   []uint64
 }
 
