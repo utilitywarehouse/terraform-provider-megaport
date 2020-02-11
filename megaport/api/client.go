@@ -210,9 +210,9 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 		}
 		err := responseDataToError(r.Data)
 		if err != nil {
-			return fmt.Errorf("megaport-api: %s: %w", r.Message, err)
+			return fmt.Errorf("megaport-api (%d): %s: %w", resp.StatusCode, r.Message, err)
 		} else {
-			return fmt.Errorf("megaport-api: %s", r.Message)
+			return fmt.Errorf("megaport-api (%d): %s", resp.StatusCode, r.Message)
 		}
 	}
 	return parseResponseBody(resp, &megaportResponse{Data: data})

@@ -90,27 +90,27 @@ func TestClient_responseDataToError(t *testing.T) {
 	}{
 		{
 			p: `{"message":"foo"}`,
-			e: `megaport-api: foo`,
+			e: `megaport-api (500): foo`,
 		},
 		{
 			p: `{"message":"foo","data":"bar"}`,
-			e: `megaport-api: foo: bar`,
+			e: `megaport-api (500): foo: bar`,
 		},
 		{
 			p: `{"message":"foo","data":["bar","baz"]}`,
-			e: `megaport-api: foo: 2 errors: ['bar', 'baz']`,
+			e: `megaport-api (500): foo: 2 errors: ['bar', 'baz']`,
 		},
 		{
 			p: `{"message":"foo","data":{"a":"b"}}`,
-			e: `megaport-api: foo: a="b"`,
+			e: `megaport-api (500): foo: a="b"`,
 		},
 		{
 			p: `{"message":"foo","data":{"c":5}}`,
-			e: `megaport-api: foo: c=5`,
+			e: `megaport-api (500): foo: c=5`,
 		},
 		{
 			p: `{"message":"foo","data":true}`,
-			e: `megaport-api: foo: cannot process error data of type bool: true`,
+			e: `megaport-api (500): foo: cannot process error data of type bool: true`,
 		},
 	}
 	c, s := testClientServer(func(w http.ResponseWriter, r *http.Request) {
