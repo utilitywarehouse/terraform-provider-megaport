@@ -152,6 +152,18 @@ type Product struct {
 	VxcAutoApproval bool
 }
 
+func (p *Product) McrVersion() int {
+	switch p.ProductType {
+	case "MCR2":
+		return 2
+	case "MEGAPORT":
+		if p.Virtual {
+			return 1
+		}
+	}
+	return -1
+}
+
 type ProductResources struct { // TODO: verify these are the only valid fields
 	// CrossConnect  ProductResourcesCrossConnect `json:"cross_connect"` // TODO: only referenced in https://dev.megaport.com/#general-get-product-list
 	Interface     ProductResourcesInterface

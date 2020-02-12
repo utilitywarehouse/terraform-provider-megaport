@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	ProductTypePort = "MEGAPORT"
-	ProductTypeMCR1 = "MEGAPORT"
-	ProductTypeMCR2 = "MCR2"
+	ProductTypePort = "MEGAPORT" // Virtual = false, ProductType = MEGAPORT
+	ProductTypeMcr1 = "MEGAPORT" // Virtual = true,  ProductType = MEGAPORT
+	ProductTypeMcr2 = "MCR2"     // Virtual = false, ProductType = MCR2
 	ProductTypeVxc  = "VXC"
 )
 
@@ -20,18 +20,23 @@ const (
 // mcr2: virtual = false, type = MCR2
 
 type portCreatePayload struct {
-	CreateDate            *uint64 `json:"createDate,omitempty"` // TODO: need to fill in? :o
-	CostCentre            *string `json:"costCentre"`
-	LagPortCount          *uint64 `json:"lagPortCount,omitempty"` // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
-	LocationId            *uint64 `json:"locationId"`
-	LocationUid           *string `json:"locationUid,omitempty"` // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
-	Market                *string `json:"market,omitempty"`      // TODO: what is this ???
-	PortSpeed             *uint64 `json:"portSpeed"`             // TODO: validate 1000, 10000, 100000
-	ProductName           *string `json:"productName"`
-	ProductType           *string `json:"productType"` // TODO: "MEGAPORT"?
-	Term                  *uint64 `json:"term"`
-	Virtual               *bool   `json:"virtual"` // TODO: False for port, true for MCR1.0 (https://dev.megaport.com/#standard-api-orders-validate-port-order)
-	MarketplaceVisibility *bool   `json:"marketplaceVisibility,omitempty"`
+	CreateDate            *uint64                      `json:"createDate,omitempty"` // TODO: need to fill in? :o
+	Config                *portCreatePayloadPortConfig `json:"config,omitempty"`
+	CostCentre            *string                      `json:"costCentre"`
+	LagPortCount          *uint64                      `json:"lagPortCount,omitempty"` // TODO: Required: the number of ports in this LAG order (https://dev.megaport.com/#standard-api-orders-validate-lag-order)
+	LocationId            *uint64                      `json:"locationId"`
+	LocationUid           *string                      `json:"locationUid,omitempty"` // TODO: null in example, is it a string? https://dev.megaport.com/#standard-api-orders-validate-port-order
+	Market                *string                      `json:"market,omitempty"`      // TODO: what is this ???
+	PortSpeed             *uint64                      `json:"portSpeed"`             // TODO: validate 1000, 10000, 100000
+	ProductName           *string                      `json:"productName"`
+	ProductType           *string                      `json:"productType"` // TODO: "MEGAPORT"?
+	Term                  *uint64                      `json:"term"`
+	Virtual               *bool                        `json:"virtual"` // TODO: False for port, true for MCR1.0 (https://dev.megaport.com/#standard-api-orders-validate-port-order)
+	MarketplaceVisibility *bool                        `json:"marketplaceVisibility,omitempty"`
+}
+
+type portCreatePayloadPortConfig struct {
+	McrAsn *uint64 `json:"mcrAsn,omitempty"`
 }
 
 type portUpdatePayload struct {
