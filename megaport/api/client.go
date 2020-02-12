@@ -141,7 +141,7 @@ func (c *Client) GetMegaportPrice(locationId, speed, term uint64, productUid str
 	return c.getMegaportCharges("megaport", v)
 }
 
-func (c *Client) GetMCR1Price(locationId, speed uint64, productUid string) (*MegaportCharges, error) {
+func (c *Client) GetMcr1Price(locationId, speed uint64, productUid string) (*MegaportCharges, error) {
 	v := url.Values{}
 	v.Set("locationId", strconv.FormatUint(locationId, 10))
 	v.Set("speed", strconv.FormatUint(speed, 10))
@@ -151,7 +151,7 @@ func (c *Client) GetMCR1Price(locationId, speed uint64, productUid string) (*Meg
 	return c.getMegaportCharges("mcr", v)
 }
 
-func (c *Client) GetMCR2Price(locationId, speed uint64, productUid string) (*MegaportCharges, error) {
+func (c *Client) GetMcr2Price(locationId, speed uint64, productUid string) (*MegaportCharges, error) {
 	v := url.Values{}
 	v.Set("locationId", strconv.FormatUint(locationId, 10))
 	v.Set("speed", strconv.FormatUint(speed, 10))
@@ -203,16 +203,16 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 	if resp.StatusCode == http.StatusNotFound {
 		return ErrNotFound
 	}
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		r := megaportResponse{}
 		if err := parseResponseBody(resp, &r); err != nil {
 			return err
 		}
 		err := responseDataToError(r.Data)
 		if err != nil {
-			return fmt.Errorf("megaport-api: %s: %w", r.Message, err)
+			return fmt.Errorf("megaport-api (%d): %s: %w", resp.StatusCode, r.Message, err)
 		} else {
-			return fmt.Errorf("megaport-api: %s", r.Message)
+			return fmt.Errorf("megaport-api (%d): %s", resp.StatusCode, r.Message)
 		}
 	}
 	return parseResponseBody(resp, &megaportResponse{Data: data})

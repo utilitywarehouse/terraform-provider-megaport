@@ -143,7 +143,11 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 		if err != nil {
 			return err
 		}
-		if err := d.Set("bandwidths", bandwidths); err != nil { // apparently it's fine to use []uint64 here
+		bw := make([]int, len(bandwidths))
+		for i, v := range bandwidths {
+			bw[i] = int(v)
+		}
+		if err := d.Set("bandwidths", bw); err != nil {
 			return err
 		}
 		d.SetId(p.ProductUid)

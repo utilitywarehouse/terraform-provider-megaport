@@ -56,10 +56,10 @@ type LocationAddress struct {
 }
 
 type LocationProducts struct {
-	MCR        bool
-	MCRVersion uint64
-	MCR1       []uint64
-	MCR2       []uint64
+	Mcr        bool
+	McrVersion uint64
+	Mcr1       []uint64
+	Mcr2       []uint64
 	Megaport   []uint64
 }
 
@@ -150,6 +150,18 @@ type Product struct {
 	Virtual         bool
 	VxcPermitted    bool
 	VxcAutoApproval bool
+}
+
+func (p *Product) McrVersion() int {
+	switch p.ProductType {
+	case "MCR2":
+		return 2
+	case "MEGAPORT":
+		if p.Virtual {
+			return 1
+		}
+	}
+	return -1
 }
 
 type ProductResources struct { // TODO: verify these are the only valid fields
