@@ -74,6 +74,11 @@ func resourceMegaportMcrRead(d *schema.ResourceData, m interface{}) error {
 	if err := d.Set("mcr_version", p.McrVersion()); err != nil {
 		return err
 	}
+	if p.McrVersion() == 1 {
+		if err := d.Set("term", int(p.ContractTermMonths)); err != nil {
+			return err
+		}
+	}
 	if err := d.Set("location_id", int(p.LocationId)); err != nil {
 		return err
 	}
