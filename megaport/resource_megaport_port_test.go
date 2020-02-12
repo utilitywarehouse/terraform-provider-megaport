@@ -16,6 +16,7 @@ func init() {
 		Name: "megaport_port",
 		Dependencies: []string{
 			"megaport_aws_vxc",
+			"megaport_gcp_vxc",
 			"megaport_private_vxc",
 		},
 		F: func(region string) error {

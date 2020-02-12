@@ -78,6 +78,14 @@ func testAccCheckResourceDestroy(s *terraform.State) error {
 			if v != nil && !isResourceDeleted(v.ProvisioningStatus) {
 				return fmt.Errorf("testAccCheckResourceDestroy: %q (%s) has not been destroyed", n, rs.Primary.ID)
 			}
+		case "megaport_mcr":
+			v, err := cfg.Client.GetMcr(rs.Primary.ID)
+			if err != nil {
+				return err
+			}
+			if v != nil && !isResourceDeleted(v.ProvisioningStatus) {
+				return fmt.Errorf("testAccCheckResourceDestroy: %q (%s) has not been destroyed", n, rs.Primary.ID)
+			}
 		case "megaport_aws_vxc":
 			fallthrough
 		case "megaport_gcp_vxc":
