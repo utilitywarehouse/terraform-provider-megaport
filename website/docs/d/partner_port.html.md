@@ -19,7 +19,7 @@ data "megaport_location" "foo" {
 }
 
 data "megaport_partner_port" "foo" {
-  name_regex   = "eu-west-1"
+  name_regex = "eu-west-1"
 
   marketplace {
     location_id = data.megaport_location.foo.id
