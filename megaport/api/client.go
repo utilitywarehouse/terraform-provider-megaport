@@ -203,7 +203,7 @@ func (c *Client) do(req *http.Request, data interface{}) error {
 	if resp.StatusCode == http.StatusNotFound {
 		return ErrNotFound
 	}
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		r := megaportResponse{}
 		if err := parseResponseBody(resp, &r); err != nil {
 			return err
