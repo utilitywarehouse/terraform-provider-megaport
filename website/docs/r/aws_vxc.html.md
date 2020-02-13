@@ -112,3 +112,18 @@ plan when the aforementioned situations occur.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique product id of the port.
+
+## Import
+
+The AWS VXC can be imported using its product uid, like any other resource,
+e.g.:
+
+```
+$ terraform import megaport_aws_vxc.foobar 1f33ea1d-ecc2-4fc3-a3a4-1e4774b04d76
+```
+
+!> **Warning:** When a AWS VXC is imported, any changes to the B End
+`product_uid` attribute are ignored. To force an update, you will need to
+`taint` the resource. After re-creating the resource, it will start to behave as
+expected and will compute the full diff. This is to work around the load
+balancing behaviour mentioned in the Note above.
