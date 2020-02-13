@@ -56,6 +56,9 @@ func resourceMegaportVxcGcpEndElem() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return old == ""
+				},
 			},
 			"connected_product_uid": {
 				Type:     schema.TypeString,
@@ -100,7 +103,10 @@ func resourceMegaportGcpVxcRead(d *schema.ResourceData, m interface{}) error {
 	if err := d.Set("a_end", flattenVxcEnd(p.AEnd)); err != nil {
 		return err
 	}
-	puid := d.Get("b_end").([]interface{})[0].(map[string]interface{})["product_uid"].(string)
+	puid := ""
+	if v := d.Get("b_end").([]interface{}); len(v) > 0 {
+		puid = v[0].(map[string]interface{})["product_uid"].(string)
+	}
 	if err := d.Set("b_end", flattenVxcEndGcp(puid, p)); err != nil {
 		return err
 	}
