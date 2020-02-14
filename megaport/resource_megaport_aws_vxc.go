@@ -59,7 +59,7 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return old == ""
+					return old == "" && d.Get("b_end.0.connected_product_uid").(string) != ""
 				},
 			},
 			"connected_product_uid": {
