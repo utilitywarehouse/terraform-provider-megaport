@@ -487,7 +487,7 @@ func (c ProductAssociatedVxcResourcesCspConnectionVRouter) connectType() string 
 	return VxcConnectTypeVRouter
 }
 
-type ProductAssociatedVxcResourcesCspConnectionVRouterInterfaces struct {}
+type ProductAssociatedVxcResourcesCspConnectionVRouterInterfaces struct{}
 
 type ProductAssociatedVxcResourcesCspConnectionGcpMegaports struct {
 	Port uint64
