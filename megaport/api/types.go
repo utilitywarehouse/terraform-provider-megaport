@@ -381,6 +381,8 @@ func (pr *ProductAssociatedVxcResources) UnmarshalJSON(b []byte) (err error) {
 			cc = &ProductAssociatedVxcResourcesCspConnectionAws{}
 		case VxcConnectTypeGoogle:
 			cc = &ProductAssociatedVxcResourcesCspConnectionGcp{}
+		case VxcConnectTypeVRouter:
+			cc = &ProductAssociatedVxcResourcesCspConnectionVRouter{}
 		default:
 			return fmt.Errorf("cannot unmarshal resources: csp_connection has unknown connect type %q", t)
 		}
@@ -467,6 +469,25 @@ type ProductAssociatedVxcResourcesCspConnectionGcp struct {
 func (c ProductAssociatedVxcResourcesCspConnectionGcp) connectType() string {
 	return VxcConnectTypeGoogle
 }
+
+type ProductAssociatedVxcResourcesCspConnectionVRouter struct {
+	ConnectType       string
+	BGPPeers          []string          `json:"bgp_peers"`
+	BGPStatus         map[string]uint64 `json:"bgp_status"`
+	IpAddresses       []string          `json:"ip_addresses"`
+	Interfaces        []ProductAssociatedVxcResourcesCspConnectionVRouterInterfaces
+	ResourceName      string `json:"resource_name"`
+	ResourceType      string `json:"resource_type"`
+	VirtualRouterId   uint64
+	VirtualRouterName string
+	Vlan              uint64
+}
+
+func (c ProductAssociatedVxcResourcesCspConnectionVRouter) connectType() string {
+	return VxcConnectTypeVRouter
+}
+
+type ProductAssociatedVxcResourcesCspConnectionVRouterInterfaces struct {}
 
 type ProductAssociatedVxcResourcesCspConnectionGcpMegaports struct {
 	Port uint64
