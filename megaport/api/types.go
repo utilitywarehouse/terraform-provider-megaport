@@ -312,11 +312,15 @@ func (v *ProductAssociatedVxc) Type() string {
 	if v.AEnd.OwnerUid == v.BEnd.OwnerUid {
 		return VxcTypePrivate
 	}
-	if c, ok := v.Resources.CspConnection.(*ProductAssociatedVxcResourcesCspConnectionAws); ok && c.ConnectType == vxcConnectTypeAws {
-		return VxcTypeAws
-	}
-	if c, ok := v.Resources.CspConnection.(*ProductAssociatedVxcResourcesCspConnectionGcp); ok && c.ConnectType == vxcConnectTypeGoogle {
-		return VxcTypeGcp
+	for _, c := range v.Resources.CspConnection {
+		if c != nil {
+			if c, ok := c.(*ProductAssociatedVxcResourcesCspConnectionAws); ok && c.ConnectType == VxcConnectTypeAws {
+				return VxcTypeAws
+			}
+			if c, ok := c.(*ProductAssociatedVxcResourcesCspConnectionGcp); ok && c.ConnectType == VxcConnectTypeGoogle {
+				return VxcTypeGcp
+			}
+		}
 	}
 	return VxcTypePartner
 }
@@ -340,33 +344,59 @@ type ProductAssociatedVxcApproval struct {
 }
 
 type ProductAssociatedVxcResources struct {
-	CspConnection interface{} `json:"csp_connection"`
+	CspConnection []CspConnection `json:"-"`
 }
 
-type productAssociatedVxcResources ProductAssociatedVxcResources
+func (pr *ProductAssociatedVxcResources) GetCspConnection(connectType string) CspConnection {
+	for _, c := range pr.CspConnection {
+		if c.connectType() == connectType {
+			return c
+		}
+	}
+	return nil
+}
 
 func (pr *ProductAssociatedVxcResources) UnmarshalJSON(b []byte) (err error) {
-	r := productAssociatedVxcResources{}
-	v := struct {
-		CspConnection struct{ ConnectType string } `json:"csp_connection"`
+	ccs := []CspConnection{}
+	ccr := struct {
+		CspConnection []json.RawMessage `json:"csp_connection"`
 	}{}
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
+	if err1 := json.Unmarshal(b, &ccr); err1 != nil {
+		ccs := struct {
+			CspConnection json.RawMessage `json:"csp_connection"`
+		}{}
+		if err2 := json.Unmarshal(b, &ccs); err != nil {
+			return fmt.Errorf("'%v', '%v'", err1, err2)
+		}
+		ccr.CspConnection = []json.RawMessage{ccs.CspConnection}
 	}
-	switch t := v.CspConnection.ConnectType; t {
-	case vxcConnectTypeAws:
-		r.CspConnection = &ProductAssociatedVxcResourcesCspConnectionAws{}
-	case vxcConnectTypeGoogle:
-		r.CspConnection = &ProductAssociatedVxcResourcesCspConnectionGcp{}
-	case "":
-	default:
-		return fmt.Errorf("Cannot unmarshal resources: csp_connection has unknown connect type %q", t)
+	ct := struct{ ConnectType string }{}
+	for _, c := range ccr.CspConnection {
+		if err := json.Unmarshal(c, &ct); err != nil {
+			return err
+		}
+		var cc CspConnection
+		switch t := ct.ConnectType; t {
+		case VxcConnectTypeAws:
+			cc = &ProductAssociatedVxcResourcesCspConnectionAws{}
+		case VxcConnectTypeGoogle:
+			cc = &ProductAssociatedVxcResourcesCspConnectionGcp{}
+		case VxcConnectTypeVRouter:
+			cc = &ProductAssociatedVxcResourcesCspConnectionVRouter{}
+		default:
+			return fmt.Errorf("cannot unmarshal resources: csp_connection has unknown connect type %q", t)
+		}
+		if err := json.Unmarshal(c, cc); err != nil {
+			return err
+		}
+		ccs = append(ccs, cc)
 	}
-	if err := json.Unmarshal(b, &r); err != nil {
-		return err
-	}
-	*pr = ProductAssociatedVxcResources(r)
+	pr.CspConnection = ccs
 	return nil
+}
+
+type CspConnection interface {
+	connectType() string
 }
 
 type ProductAssociatedVxcResourcesCspConnectionAws struct {
@@ -391,6 +421,10 @@ type ProductAssociatedVxcResourcesCspConnectionAws struct {
 	Type         string
 	VifId        string `json:"Vif_id"`
 	Vlan         uint64 `json:"-"`
+}
+
+func (c ProductAssociatedVxcResourcesCspConnectionAws) connectType() string {
+	return VxcConnectTypeAws
 }
 
 type productAssociatedVxcResourcesCspConnectionAwsFloats struct {
@@ -431,6 +465,29 @@ type ProductAssociatedVxcResourcesCspConnectionGcp struct {
 	ResourceName string `json:"resource_name"`
 	ResourceType string `json:"resource_type"`
 }
+
+func (c ProductAssociatedVxcResourcesCspConnectionGcp) connectType() string {
+	return VxcConnectTypeGoogle
+}
+
+type ProductAssociatedVxcResourcesCspConnectionVRouter struct {
+	ConnectType       string
+	BGPPeers          []string          `json:"bgp_peers"`
+	BGPStatus         map[string]uint64 `json:"bgp_status"`
+	IpAddresses       []string          `json:"ip_addresses"`
+	Interfaces        []ProductAssociatedVxcResourcesCspConnectionVRouterInterfaces
+	ResourceName      string `json:"resource_name"`
+	ResourceType      string `json:"resource_type"`
+	VirtualRouterId   uint64
+	VirtualRouterName string
+	Vlan              uint64
+}
+
+func (c ProductAssociatedVxcResourcesCspConnectionVRouter) connectType() string {
+	return VxcConnectTypeVRouter
+}
+
+type ProductAssociatedVxcResourcesCspConnectionVRouterInterfaces struct {}
 
 type ProductAssociatedVxcResourcesCspConnectionGcpMegaports struct {
 	Port uint64

@@ -104,7 +104,10 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 }
 
 func flattenVxcEndAws(configProductUid string, v *api.ProductAssociatedVxc) []interface{} {
-	cc := v.Resources.CspConnection.(*api.ProductAssociatedVxcResourcesCspConnectionAws)
+	var cc *api.ProductAssociatedVxcResourcesCspConnectionAws
+	if cc_ := v.Resources.GetCspConnection(api.VxcConnectTypeAws); cc_ != nil {
+		cc = cc_.(*api.ProductAssociatedVxcResourcesCspConnectionAws)
+	}
 	return []interface{}{map[string]interface{}{
 		"product_uid":           configProductUid,
 		"connected_product_uid": v.BEnd.ProductUid,
@@ -270,7 +273,10 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 				return nil, "", nil
 			}
 			pc := input.PartnerConfig.(*api.PartnerConfigAws)
-			cc := v.Resources.CspConnection.(*api.ProductAssociatedVxcResourcesCspConnectionAws)
+			var cc *api.ProductAssociatedVxcResourcesCspConnectionAws
+			if cc_ := v.Resources.GetCspConnection(api.VxcConnectTypeAws); cc_ != nil {
+				cc = cc_.(*api.ProductAssociatedVxcResourcesCspConnectionAws)
+			}
 			if !compareNillableStrings(pc.AmazonIPAddress, cc.AmazonIpAddress) {
 				return nil, "", nil
 			}

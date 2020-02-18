@@ -74,7 +74,10 @@ func resourceMegaportVxcGcpEndElem() *schema.Resource {
 }
 
 func flattenVxcEndGcp(configProductUid string, v *api.ProductAssociatedVxc) []interface{} {
-	cc := v.Resources.CspConnection.(*api.ProductAssociatedVxcResourcesCspConnectionGcp)
+	var cc *api.ProductAssociatedVxcResourcesCspConnectionGcp
+	if cc_ := v.Resources.GetCspConnection(api.VxcConnectTypeGoogle); cc_ != nil {
+		cc = cc_.(*api.ProductAssociatedVxcResourcesCspConnectionGcp)
+	}
 	return []interface{}{map[string]interface{}{
 		"product_uid":           configProductUid,
 		"connected_product_uid": v.BEnd.ProductUid,
@@ -213,7 +216,10 @@ func waitUntilGcpVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 				return nil, "", nil
 			}
 			pc := input.PartnerConfig.(*api.PartnerConfigGcp)
-			cc := v.Resources.CspConnection.(*api.ProductAssociatedVxcResourcesCspConnectionGcp)
+			var cc *api.ProductAssociatedVxcResourcesCspConnectionGcp
+			if cc_ := v.Resources.GetCspConnection(api.VxcConnectTypeGoogle); cc_ != nil {
+				cc = cc_.(*api.ProductAssociatedVxcResourcesCspConnectionGcp)
+			}
 			if !compareNillableStrings(pc.PairingKey, cc.PairingKey) {
 				return nil, "", nil
 			}

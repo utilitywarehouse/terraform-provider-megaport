@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	vxcConnectTypeAws    = "AWS"
-	vxcConnectTypeGoogle = "GOOGLE"
+	VxcConnectTypeAws     = "AWS"
+	VxcConnectTypeGoogle  = "GOOGLE"
+	VxcConnectTypeVRouter = "VROUTER"
 )
 
 type networkDesignInput interface {

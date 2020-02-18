@@ -9,6 +9,7 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-getter v1.4.1 // indirect
 	github.com/hashicorp/go-hclog v0.12.0 // indirect
