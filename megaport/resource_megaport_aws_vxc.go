@@ -1,6 +1,7 @@
 package megaport
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -193,6 +194,15 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 	if v := a["vlan"].(int); v != 0 {
 		input.VlanA = api.Uint64FromInt(v)
 	}
+	if *input.VlanA > 0 {
+		ok, err := cfg.Client.GetPortVlanIdAvailable(*input.ProductUidA, *input.VlanA)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, *input.ProductUidA)
+		}
+	}
 	uid, err := cfg.Client.CreateCloudVxc(input)
 	if err != nil {
 		return err
@@ -219,6 +229,15 @@ func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	if v := a["vlan"].(int); v != 0 {
 		input.VlanA = api.Uint64FromInt(v)
+	}
+	if *input.VlanA > 0 {
+		ok, err := cfg.Client.GetPortVlanIdAvailable(a["product_uid"].(string), *input.VlanA)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, a["product_uid"].(string))
+		}
 	}
 	if err := cfg.Client.UpdateCloudVxc(input); err != nil {
 		return err
