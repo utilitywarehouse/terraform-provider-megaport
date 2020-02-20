@@ -39,6 +39,6 @@ resource "megaport_aws_vxc" "foo" {
     bgp_auth_key        = "{{ .uid }}"
     customer_asn        = {{ .customer_asn }}
     customer_ip_address = "{{ .customer_ip_address }}"
-    type                = "private"
+    type                = "{{ .type }}"
   }
 }

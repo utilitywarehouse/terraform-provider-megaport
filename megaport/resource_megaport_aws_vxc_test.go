@@ -40,6 +40,7 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 		"customer_asn":        acctest.RandIntRange(1, 65535),
 		"aws_ip_address":      ipA,
 		"customer_ip_address": ipB,
+		"type":                "private",
 	}
 	cfg, err := newTestAccConfig("megaport_aws_vxc_basic", configValues, 0)
 	if err != nil {
@@ -49,14 +50,14 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 		"aws_account_id": acctest.RandStringFromCharSet(12, "012346789"),
 		"customer_asn":   acctest.RandIntRange(1, 65535),
 	})
-	cfgUpdate, err := newTestAccConfig("megaport_aws_vxc_basic_update", configValuesUpdate, 1)
+	cfgUpdate, err := newTestAccConfig("megaport_aws_vxc_full", configValuesUpdate, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	configValuesForceNew := mergeMaps(configValuesUpdate, map[string]interface{}{
 		"location": "Interxion DUB2",
 	})
-	cfgForceNew, err := newTestAccConfig("megaport_aws_vxc_basic_update", configValuesForceNew, 1)
+	cfgForceNew, err := newTestAccConfig("megaport_aws_vxc_full", configValuesForceNew, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
