@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
@@ -135,7 +137,13 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 		return nil
 	}
 	if v, ok := d.GetOk("gcp"); ok {
-		ports, bandwidths, err := cfg.Client.GetMegaportsForGcpPairingKey(expandFilters(v)["pairing_key"].(string))
+		pk := expandFilters(v)["pairing_key"].(string)
+		randomUUID, err := uuid.GenerateUUID()
+		if err != nil {
+			return err
+		}
+		pk = randomUUID + "/" + strings.SplitN(pk, "/", 2)[1]
+		ports, bandwidths, err := cfg.Client.GetMegaportsForGcpPairingKey(pk)
 		if err != nil {
 			return err
 		}
