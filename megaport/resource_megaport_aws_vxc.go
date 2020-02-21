@@ -82,6 +82,15 @@ func resourceMegaportVxcAwsEndElem() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IsCIDR,
 			},
+			"aws_prefixes": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.IsCIDR,
+				},
+			},
 			"bgp_auth_key": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -109,12 +118,17 @@ func flattenVxcEndAws(configProductUid string, v *api.ProductAssociatedVxc) []in
 	if cc_ := v.Resources.GetCspConnection(api.VxcConnectTypeAws); cc_ != nil {
 		cc = cc_.(*api.ProductAssociatedVxcResourcesCspConnectionAws)
 	}
+	var prefixes []string
+	if cc.Prefixes != "" {
+		prefixes = strings.Split(cc.Prefixes, ",")
+	}
 	return []interface{}{map[string]interface{}{
 		"product_uid":           configProductUid,
 		"connected_product_uid": v.BEnd.ProductUid,
 		"aws_connection_name":   cc.Name,
 		"aws_account_id":        cc.OwnerAccount,
 		"aws_ip_address":        cc.AmazonIpAddress,
+		"aws_prefixes":          prefixes,
 		"bgp_auth_key":          cc.AuthKey,
 		"customer_asn":          int(cc.Asn),
 		"customer_ip_address":   cc.CustomerIpAddress,
@@ -133,6 +147,12 @@ func expandVxcEndAws(e map[string]interface{}) *api.PartnerConfigAws {
 	}
 	if v := e["aws_ip_address"]; v != "" {
 		pc.AmazonIPAddress = api.String(v)
+	}
+	if v := e["aws_prefixes"].(*schema.Set).List(); len(v) > 0 {
+		pc.AmazonPrefixes = make([]string, len(v))
+		for i, vv := range v {
+			pc.AmazonPrefixes[i] = vv.(string)
+		}
 	}
 	if v := e["bgp_auth_key"]; v != "" {
 		pc.BGPAuthKey = api.String(v)
@@ -187,6 +207,9 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		Name:          api.String(d.Get("name")),
 		PartnerConfig: expandVxcEndAws(b),
 		RateLimit:     api.Uint64FromInt(d.Get("rate_limit")),
+	}
+	if v := b["aws_prefixes"].(*schema.Set).List(); len(v) > 0 && b["type"].(string) != "public" {
+		return fmt.Errorf("cannot specify 'aws_prefixes' for a private VXC")
 	}
 	if v, ok := d.GetOk("invoice_reference"); ok {
 		input.InvoiceReference = api.String(v)

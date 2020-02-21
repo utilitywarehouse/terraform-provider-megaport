@@ -415,12 +415,12 @@ type ProductAssociatedVxcResourcesCspConnectionAws struct {
 	Name              string
 	OwnerAccount      string
 	PeerAsn           uint64 `json:"-"`
-	// Prefixes // null?
-	ResourceName string `json:"Resource_name"`
-	ResourceType string `json:"Resource_type"`
-	Type         string
-	VifId        string `json:"Vif_id"`
-	Vlan         uint64 `json:"-"`
+	Prefixes          string
+	ResourceName      string `json:"Resource_name"`
+	ResourceType      string `json:"Resource_type"`
+	Type              string
+	VifId             string `json:"Vif_id"`
+	Vlan              uint64 `json:"-"`
 }
 
 func (c ProductAssociatedVxcResourcesCspConnectionAws) connectType() string {

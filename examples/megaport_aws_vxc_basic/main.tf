@@ -34,6 +34,6 @@ resource "megaport_aws_vxc" "foo" {
     product_uid    = data.megaport_partner_port.aws.id
     aws_account_id = "{{ .aws_account_id }}"
     customer_asn   = {{ .customer_asn }}
-    type           = "private"
+    type           = "{{ .type }}"
   }
 }

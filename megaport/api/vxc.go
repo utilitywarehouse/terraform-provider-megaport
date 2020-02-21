@@ -201,6 +201,7 @@ type PartnerConfig interface {
 
 type PartnerConfigAws struct {
 	AmazonIPAddress   *string
+	AmazonPrefixes    []string
 	AwsConnectionName *string
 	AwsAccountId      *string
 	BGPAuthKey        *string
@@ -222,6 +223,7 @@ func (v *PartnerConfigAws) toPayload() interface{} {
 		CustomerIpAddress: v.CustomerIPAddress,
 		Name:              v.AwsConnectionName,
 		OwnerAccount:      v.AwsAccountId,
+		Prefixes:          String(strings.Join(v.AmazonPrefixes, ",")),
 		Type:              v.Type,
 	}
 }
@@ -236,8 +238,8 @@ type vxcCreatePayloadPartnerConfigAws struct {
 	CustomerIpAddress *string `json:"customerIpAddress,omitempty"`
 	Name              *string `json:"name,omitempty"`
 	OwnerAccount      *string `json:"ownerAccount,omitempty"`
-	// Prefixes          *string `json:",omitempty"`
-	Type *string `json:"type,omitempty"`
+	Prefixes          *string `json:"prefixes,omitempty"`
+	Type              *string `json:"type,omitempty"`
 }
 
 type PartnerConfigGcp struct {
