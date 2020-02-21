@@ -4,3 +4,4 @@ terraform-provider-megaport
 crash.log
 vendor/
 cover.out
+dist/
