@@ -138,6 +138,11 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 	}
 	if v, ok := d.GetOk("gcp"); ok {
 		pk := expandFilters(v)["pairing_key"].(string)
+		// When looking up the available ports for a given GCP pairing key, the
+		// results will differ depending on whether the key has been consumed
+		// for a VXC or not. Instead of using same the pairing key that is used
+		// in a VXC, we can instead randomise the UUID part of the key. This
+		// achieves getting consistent results from the endpoint.
 		randomUUID, err := uuid.GenerateUUID()
 		if err != nil {
 			return err
