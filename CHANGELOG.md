@@ -1,3 +1,11 @@
+## 0.1.0-rc.2 (February 27, 2020)
+
+BUG FIXES:
+
+* data-source/megaport_partner_port: use a randomised key to produce consistent
+results ([#1](https://github.com/utilitywarehouse/terraform-provider-megaport/issues/1))
+
+
 ## 0.1.0-rc.1 (February 21, 2020)
 
 NOTES:
