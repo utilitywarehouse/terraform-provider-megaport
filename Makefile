@@ -107,8 +107,9 @@ website-lint:
 		--tty \
 		--volume $(shell pwd)/website:/src/website \
 		--workdir /src \
+		--env GO111MODULE=on \
 		golang:alpine \
-		/bin/sh -c 'GO111MODULE=on go install github.com/client9/misspell/cmd/misspell && misspell -error -source=text website'
+		/bin/sh -c 'go get github.com/client9/misspell/cmd/misspell && misspell -error -source=text website'
 
 website-setup:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
