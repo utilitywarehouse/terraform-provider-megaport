@@ -27,10 +27,13 @@ require (
 	github.com/ulikunitz/xz v0.5.6 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/zclconf/go-cty v1.2.1 // indirect
-	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d // indirect
+	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678 // indirect
 	golang.org/x/exp v0.0.0-20200119233911-0405dc783f0a // indirect
-	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
+	golang.org/x/sys v0.0.0-20200217220822-9197077df867 // indirect
 	golang.org/x/tools v0.0.0-20200130002326-2f3ba24bd6e7 // indirect
 	google.golang.org/genproto v0.0.0-20200128133413-58ce757ed39b // indirect
 	google.golang.org/grpc v1.27.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
