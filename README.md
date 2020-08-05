@@ -18,9 +18,9 @@ Firstly export the follwing vars:
 ```sh 
 export MEGAPORT_USERNAME=your-user-name
 export MEGAPORT_PASSWORD=your-password
-and 
+And: 
 export MEGAPORT_ENDPOINT=api.EndpointStaging #For Dev (Staging) 
-`OR`
+Or:
 export MEGAPORT_ENDPOINT=api.EndpointProduction # For Production
 ```
 To retrieve a new token for the megaport api and export it as a variable:
