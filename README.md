@@ -14,7 +14,7 @@ is provided. To simplify the process of obtaining a new access token, there is a
 utility tool you can use. It is recommended that the token is provided via the
 `MEGAPORT_TOKEN` environment variable.
 
-Firstly export the follwing vars:
+Firstly, export the follwing vars:
 ```sh 
 export MEGAPORT_USERNAME=your-user-name
 export MEGAPORT_PASSWORD=your-password
