@@ -46,7 +46,7 @@ func TestAccMegaportPort_basic(t *testing.T) {
 	rName := "t" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	configValues := map[string]interface{}{
 		"uid":      rName,
-		"location": "Telehouse North",
+		"location": "Telehouse North$",
 	}
 	cfg, err := newTestAccConfig("megaport_port_basic", configValues, 0)
 	if err != nil {

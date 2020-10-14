@@ -40,7 +40,7 @@ func TestAccMegaportPrivateVxc_basic(t *testing.T) {
 		t.Fatal(err)
 	}
 	configValuesForceNew := mergeMaps(configValues, map[string]interface{}{
-		"locationB": "Telehouse North",
+		"locationB": "Telehouse North$",
 		"vlanA":     456,
 		"vlanB":     456,
 	})
