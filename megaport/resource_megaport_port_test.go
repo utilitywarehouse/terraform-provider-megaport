@@ -80,6 +80,11 @@ func TestAccMegaportPort_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_port.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgUpdate.log() },
 				Config:    cfgUpdate.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -93,6 +98,11 @@ func TestAccMegaportPort_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_port.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgForceNew.log() },
 				Config:    cfgForceNew.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -104,6 +114,11 @@ func TestAccMegaportPort_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_port.foo", "invoice_reference", rName),
 					resource.TestCheckResourceAttr("megaport_port.foo", "marketplace_visibility", "public"),
 				),
+			},
+			{
+				ResourceName:      "megaport_port.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

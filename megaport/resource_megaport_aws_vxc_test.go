@@ -94,6 +94,12 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:            "megaport_aws_vxc.foo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"b_end.0.product_uid"},
+			},
+			{
 				PreConfig: func() { cfgUpdate.log() },
 				Config:    cfgUpdate.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -114,6 +120,12 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_ip_address", ipB),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.type", "private"),
 				),
+			},
+			{
+				ResourceName:            "megaport_aws_vxc.foo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"b_end.0.product_uid"},
 			},
 			{
 				PreConfig: func() { cfgForceNew.log() },
@@ -137,6 +149,12 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_ip_address", ipB),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.type", "private"),
 				),
+			},
+			{
+				ResourceName:            "megaport_aws_vxc.foo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"b_end.0.product_uid"},
 			},
 		},
 	})
@@ -227,6 +245,12 @@ func TestAccMegaportAwsVxc_basicPublic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.customer_ip_address", ipB),
 					resource.TestCheckResourceAttr("megaport_aws_vxc.foo", "b_end.0.type", "public"),
 				),
+			},
+			{
+				ResourceName:            "megaport_aws_vxc.foo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"b_end.0.product_uid"},
 			},
 		},
 	})

@@ -71,6 +71,11 @@ func TestAccMegaportPrivateVxc_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_private_vxc.foobar",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgUpdate.log() },
 				Config:    cfgUpdate.Config,
 				Destroy:   false,
@@ -88,6 +93,11 @@ func TestAccMegaportPrivateVxc_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_private_vxc.foobar",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgForceNew.log() },
 				Config:    cfgForceNew.Config,
 				Destroy:   false,
@@ -103,6 +113,11 @@ func TestAccMegaportPrivateVxc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair("megaport_private_vxc.foobar", "b_end.0.product_uid", "megaport_port.bar", "id"),
 					resource.TestCheckResourceAttr("megaport_private_vxc.foobar", "b_end.0.vlan", strconv.Itoa(configValuesForceNew["vlanB"].(int))),
 				),
+			},
+			{
+				ResourceName:      "megaport_private_vxc.foobar",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
