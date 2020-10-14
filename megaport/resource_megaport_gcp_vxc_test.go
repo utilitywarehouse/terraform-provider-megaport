@@ -77,6 +77,12 @@ func TestAccMegaportGcpVxc_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:            "megaport_gcp_vxc.foo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"b_end.0.product_uid"},
+			},
+			{
 				PreConfig: func() { cfgUpdate.log() },
 				Config:    cfgUpdate.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -93,6 +99,12 @@ func TestAccMegaportGcpVxc_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:            "megaport_gcp_vxc.foo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"b_end.0.product_uid"},
+			},
+			{
 				PreConfig: func() { cfgForceNew.log() },
 				Config:    cfgForceNew.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -107,6 +119,12 @@ func TestAccMegaportGcpVxc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("megaport_gcp_vxc.foo", "b_end.0.connected_product_uid"),
 					resource.TestCheckResourceAttr("megaport_gcp_vxc.foo", "b_end.0.pairing_key", rpk),
 				),
+			},
+			{
+				ResourceName:            "megaport_gcp_vxc.foo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"b_end.0.product_uid"},
 			},
 		},
 	})

@@ -11,7 +11,7 @@ data "megaport_partner_port" "aws" {
 }
 
 data "megaport_location" "foo" {
-  name_regex = "Telehouse North"
+  name_regex = "Telehouse North$"
 }
 
 resource "megaport_port" "foo" {

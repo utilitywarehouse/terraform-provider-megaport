@@ -90,6 +90,11 @@ func TestAccMegaportMcr1_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_mcr.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgUpdate.log() },
 				Config:    cfgUpdate.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -103,6 +108,11 @@ func TestAccMegaportMcr1_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_mcr.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgForceNew.log() },
 				Config:    cfgForceNew.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -114,6 +124,11 @@ func TestAccMegaportMcr1_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("megaport_mcr.foo", "term", "12"),
 					resource.TestCheckResourceAttr("megaport_mcr.foo", "invoice_reference", rName),
 				),
+			},
+			{
+				ResourceName:      "megaport_mcr.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -171,6 +186,11 @@ func TestAccMegaportMcr2_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_mcr.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgUpdate.log() },
 				Config:    cfgUpdate.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -183,6 +203,11 @@ func TestAccMegaportMcr2_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "megaport_mcr.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				PreConfig: func() { cfgForceNew.log() },
 				Config:    cfgForceNew.Config,
 				Check: resource.ComposeTestCheckFunc(
@@ -193,6 +218,11 @@ func TestAccMegaportMcr2_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair("megaport_mcr.foo", "location_id", "data.megaport_location.foo", "id"),
 					resource.TestCheckResourceAttr("megaport_mcr.foo", "invoice_reference", rName),
 				),
+			},
+			{
+				ResourceName:      "megaport_mcr.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
