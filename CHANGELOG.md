@@ -1,3 +1,14 @@
+## 0.1.0-rc.3 (October 14, 2020)
+
+NOTES:
+
+Adds resource import tests.
+
+BUG FIXES:
+
+* resource/megaport_mcr: fix perpetual diff after import
+
+
 ## 0.1.0-rc.2 (February 27, 2020)
 
 BUG FIXES:
