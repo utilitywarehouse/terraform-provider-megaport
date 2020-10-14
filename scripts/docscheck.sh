@@ -15,7 +15,7 @@ go build -o "${tmpd}" .
         --tty \
         --volume "${tmpd}:/out" \
         --workdir /out \
-        hashicorp/terraform \
+        hashicorp/terraform:${TF_VER} \
         init >/dev/null 2>&1
 
     docker run \
@@ -24,7 +24,7 @@ go build -o "${tmpd}" .
         --tty \
         --volume "${tmpd}:/out" \
         --workdir /out \
-        hashicorp/terraform \
+        hashicorp/terraform:${TF_VER} \
         providers schema -json >schema.json
 
     sudo rm -rf .terraform
