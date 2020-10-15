@@ -26,9 +26,6 @@ The following arguments are supported:
 * `name_regex` - (Required, Forces new resource) A regex string filter to apply
 to the location list returned by Megaport.
 
-* `mcr_available` - (Optional, Forces new resource) Filter locations where the
-specified MCR version is available (accepted values are `1` and `2`).
-
 ~> **Note:** If more or less than a single match is returned by the search,
 Terraform will fail. Ensure that your search is specific enough to return a
 single location.

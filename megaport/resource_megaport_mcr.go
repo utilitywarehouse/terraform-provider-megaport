@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -22,12 +21,6 @@ func resourceMegaportMcr() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"mcr_version": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntInSlice([]int{1, 2}),
-			},
 			"location_id": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -41,13 +34,6 @@ func resourceMegaportMcr() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
-			},
-			"term": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      1,
-				ValidateFunc: validation.IntInSlice([]int{1, 12, 24, 36}),
 			},
 			"asn": {
 				Type:     schema.TypeInt,
@@ -71,12 +57,6 @@ func resourceMegaportMcrRead(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return nil
 	}
-	if err := d.Set("mcr_version", p.McrVersion()); err != nil {
-		return err
-	}
-	if err := d.Set("term", int(p.ContractTermMonths)); err != nil {
-		return err
-	}
 	if err := d.Set("location_id", int(p.LocationId)); err != nil {
 		return err
 	}
@@ -97,25 +77,12 @@ func resourceMegaportMcrRead(d *schema.ResourceData, m interface{}) error {
 
 func resourceMegaportMcrCreate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	var input api.McrCreateInput
-	switch d.Get("mcr_version").(int) {
-	case 1:
-		input = &api.Mcr1CreateInput{
-			LocationId:       api.Uint64FromInt(d.Get("location_id")),
-			Name:             api.String(d.Get("name")),
-			RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-			Asn:              api.Uint64FromInt(d.Get("asn")),
-			Term:             api.Uint64FromInt(d.Get("term")),
-			InvoiceReference: api.String(d.Get("invoice_reference")),
-		}
-	case 2:
-		input = &api.Mcr2CreateInput{
-			LocationId:       api.Uint64FromInt(d.Get("location_id")),
-			Name:             api.String(d.Get("name")),
-			RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
-			Asn:              api.Uint64FromInt(d.Get("asn")),
-			InvoiceReference: api.String(d.Get("invoice_reference")),
-		}
+	input := &api.Mcr2CreateInput{
+		LocationId:       api.Uint64FromInt(d.Get("location_id")),
+		Name:             api.String(d.Get("name")),
+		RateLimit:        api.Uint64FromInt(d.Get("rate_limit")),
+		Asn:              api.Uint64FromInt(d.Get("asn")),
+		InvoiceReference: api.String(d.Get("invoice_reference")),
 	}
 	uid, err := cfg.Client.CreateMcr(input)
 	if err != nil {
@@ -130,20 +97,10 @@ func resourceMegaportMcrCreate(d *schema.ResourceData, m interface{}) error {
 
 func resourceMegaportMcrUpdate(d *schema.ResourceData, m interface{}) error {
 	cfg := m.(*Config)
-	var input api.McrUpdateInput
-	switch d.Get("mcr_version").(int) {
-	case 1:
-		input = &api.Mcr1UpdateInput{
-			InvoiceReference: api.String(d.Get("invoice_reference")),
-			Name:             api.String(d.Get("name")),
-			ProductUid:       api.String(d.Id()),
-		}
-	case 2:
-		input = &api.Mcr2UpdateInput{
-			InvoiceReference: api.String(d.Get("invoice_reference")),
-			Name:             api.String(d.Get("name")),
-			ProductUid:       api.String(d.Id()),
-		}
+	input := &api.Mcr2UpdateInput{
+		InvoiceReference: api.String(d.Get("invoice_reference")),
+		Name:             api.String(d.Get("name")),
+		ProductUid:       api.String(d.Id()),
 	}
 	if err := cfg.Client.UpdateMcr(input); err != nil {
 		return err

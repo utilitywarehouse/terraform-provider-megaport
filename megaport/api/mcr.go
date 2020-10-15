@@ -8,41 +8,6 @@ import (
 
 type McrCreateInput interface {
 	networkDesignInput
-	mcrVersion() uint64
-}
-
-type Mcr1CreateInput struct {
-	Asn              *uint64
-	InvoiceReference *string
-	LocationId       *uint64
-	Name             *string
-	RateLimit        *uint64
-	Term             *uint64
-}
-
-func (v *Mcr1CreateInput) mcrVersion() uint64 {
-	return 1
-}
-
-func (v *Mcr1CreateInput) productType() string {
-	return ProductTypeMcr1
-}
-
-func (v *Mcr1CreateInput) toPayload() ([]byte, error) {
-	payload := []*portCreatePayload{{
-		LocationId:  v.LocationId,
-		Config:      &portCreatePayloadPortConfig{},
-		CostCentre:  v.InvoiceReference,
-		PortSpeed:   v.RateLimit,
-		ProductName: v.Name,
-		ProductType: String(ProductTypeMcr1),
-		Term:        v.Term,
-		Virtual:     Bool(true),
-	}}
-	if v.Asn != nil && *v.Asn > 0 {
-		payload[0].Config.McrAsn = v.Asn
-	}
-	return json.Marshal(payload)
 }
 
 type Mcr2CreateInput struct {
@@ -51,10 +16,6 @@ type Mcr2CreateInput struct {
 	LocationId       *uint64
 	Name             *string
 	RateLimit        *uint64
-}
-
-func (v *Mcr2CreateInput) mcrVersion() uint64 {
-	return 2
 }
 
 func (v *Mcr2CreateInput) productType() string {
