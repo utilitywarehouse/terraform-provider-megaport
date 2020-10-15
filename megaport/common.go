@@ -1,6 +1,7 @@
 package megaport
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -92,7 +93,7 @@ func compareNillableUints(a *uint64, b uint64) bool {
 	return a == nil || *a == b
 }
 
-func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+func waitUntilVxcIsConfigured(ctx context.Context, client *api.Client, productUid string, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
@@ -111,11 +112,11 @@ func waitUntilVxcIsConfigured(client *api.Client, productUid string, timeout tim
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for VXC (%s) to be configured", productUid)
-	_, err := scc.WaitForState()
+	_, err := scc.WaitForStateContext(ctx)
 	return err
 }
 
-func waitUntilVxcIsDeleted(client *api.Client, productUid string, timeout time.Duration) error {
+func waitUntilVxcIsDeleted(ctx context.Context, client *api.Client, productUid string, timeout time.Duration) error {
 	initial, err := client.GetVxc(productUid)
 	if err != nil {
 		log.Printf("[ERROR] Could not retrieve VXC while waiting for deletion to finish: %v", err)
@@ -157,6 +158,6 @@ func waitUntilVxcIsDeleted(client *api.Client, productUid string, timeout time.D
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for VXC (%s) to be deleted", productUid)
-	_, err = scc.WaitForState()
+	_, err = scc.WaitForStateContext(ctx)
 	return err
 }

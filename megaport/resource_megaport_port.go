@@ -103,7 +103,7 @@ func resourceMegaportPortCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
-	if err := waitUntilPortIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
+	if err := waitUntilPortIsConfigured(ctx, cfg.Client, *uid, 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
 	return resourceMegaportPortRead(ctx, d, m)
@@ -119,7 +119,7 @@ func resourceMegaportPortUpdate(ctx context.Context, d *schema.ResourceData, m i
 	}); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := waitUntilPortIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+	if err := waitUntilPortIsConfigured(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
 	return resourceMegaportPortRead(ctx, d, m)
@@ -137,7 +137,7 @@ func resourceMegaportPortDelete(ctx context.Context, d *schema.ResourceData, m i
 	return nil
 }
 
-func waitUntilPortIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+func waitUntilPortIsConfigured(ctx context.Context, client *api.Client, productUid string, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
@@ -156,6 +156,6 @@ func waitUntilPortIsConfigured(client *api.Client, productUid string, timeout ti
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for Port (%s) to be configured", productUid)
-	_, err := scc.WaitForState()
+	_, err := scc.WaitForStateContext(ctx)
 	return err
 }

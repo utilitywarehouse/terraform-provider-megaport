@@ -106,7 +106,7 @@ func resourceMegaportPrivateVxcCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
-	if err := waitUntilVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
+	if err := waitUntilVxcIsConfigured(ctx, cfg.Client, *uid, 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
 	return resourceMegaportPrivateVxcRead(ctx, d, m)
@@ -133,10 +133,10 @@ func resourceMegaportPrivateVxcUpdate(ctx context.Context, d *schema.ResourceDat
 	if err := cfg.Client.UpdatePrivateVxc(input); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := waitUntilVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+	if err := waitUntilVxcIsConfigured(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := waitUntilPrivateVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
+	if err := waitUntilPrivateVxcIsUpdated(ctx, cfg.Client, input, 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
 	return resourceMegaportPrivateVxcRead(ctx, d, m)
@@ -152,13 +152,13 @@ func resourceMegaportPrivateVxcDelete(ctx context.Context, d *schema.ResourceDat
 		log.Printf("[DEBUG] VXC (%s) not found, deleting from state anyway", d.Id())
 		return nil
 	}
-	if err := waitUntilVxcIsDeleted(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+	if err := waitUntilVxcIsDeleted(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func waitUntilPrivateVxcIsUpdated(client *api.Client, input *api.PrivateVxcUpdateInput, timeout time.Duration) error {
+func waitUntilPrivateVxcIsUpdated(ctx context.Context, client *api.Client, input *api.PrivateVxcUpdateInput, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
@@ -192,6 +192,6 @@ func waitUntilPrivateVxcIsUpdated(client *api.Client, input *api.PrivateVxcUpdat
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for VXC (%s) to be updated", *input.ProductUid)
-	_, err := scc.WaitForState()
+	_, err := scc.WaitForStateContext(ctx)
 	return err
 }

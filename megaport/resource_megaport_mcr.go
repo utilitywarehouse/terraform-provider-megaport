@@ -92,7 +92,7 @@ func resourceMegaportMcrCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
-	if err := waitUntilMcrIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
+	if err := waitUntilMcrIsConfigured(ctx, cfg.Client, *uid, 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
 	return resourceMegaportMcrRead(ctx, d, m)
@@ -108,7 +108,7 @@ func resourceMegaportMcrUpdate(ctx context.Context, d *schema.ResourceData, m in
 	if err := cfg.Client.UpdateMcr(input); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := waitUntilMcrIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
+	if err := waitUntilMcrIsConfigured(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
 		return diag.FromErr(err)
 	}
 	return resourceMegaportMcrRead(ctx, d, m)
@@ -126,7 +126,7 @@ func resourceMegaportMcrDelete(ctx context.Context, d *schema.ResourceData, m in
 	return nil
 }
 
-func waitUntilMcrIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+func waitUntilMcrIsConfigured(ctx context.Context, client *api.Client, productUid string, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
@@ -145,6 +145,6 @@ func waitUntilMcrIsConfigured(client *api.Client, productUid string, timeout tim
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for MCR (%s) to be configured", productUid)
-	_, err := scc.WaitForState()
+	_, err := scc.WaitForStateContext(ctx)
 	return err
 }
