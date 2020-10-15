@@ -1,21 +1,24 @@
 package megaport
 
 import (
+	"context"
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportPort() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMegaportPortCreate,
-		Read:   resourceMegaportPortRead,
-		Update: resourceMegaportPortUpdate,
-		Delete: resourceMegaportPortDelete,
+		CreateContext: resourceMegaportPortCreate,
+		ReadContext:   resourceMegaportPortRead,
+		UpdateContext: resourceMegaportPortUpdate,
+		DeleteContext: resourceMegaportPortDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -52,7 +55,7 @@ func resourceMegaportPort() *schema.Resource {
 	}
 }
 
-func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPortRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetPort(d.Id())
 	if err != nil {
@@ -61,32 +64,32 @@ func resourceMegaportPortRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	if err := d.Set("location_id", int(p.LocationId)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("name", p.ProductName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("speed", int(p.PortSpeed)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("term", int(p.ContractTermMonths)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("marketplace_visibility", "private"); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if p.MarketplaceVisibility {
 		if err := d.Set("marketplace_visibility", "public"); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	return nil
 }
 
-func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPortCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	uid, err := cfg.Client.CreatePort(&api.PortCreateInput{
 		LocationId:            api.Uint64FromInt(d.Get("location_id")),
@@ -97,16 +100,16 @@ func resourceMegaportPortCreate(d *schema.ResourceData, m interface{}) error {
 		InvoiceReference:      api.String(d.Get("invoice_reference")),
 	})
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
 	if err := waitUntilPortIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	return resourceMegaportPortRead(d, m)
+	return resourceMegaportPortRead(ctx, d, m)
 }
 
-func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPortUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	if err := cfg.Client.UpdatePort(&api.PortUpdateInput{
 		InvoiceReference:      api.String(d.Get("invoice_reference")),
@@ -114,19 +117,19 @@ func resourceMegaportPortUpdate(d *schema.ResourceData, m interface{}) error {
 		ProductUid:            api.String(d.Id()),
 		MarketplaceVisibility: api.Bool(d.Get("marketplace_visibility") == "public"),
 	}); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := waitUntilPortIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	return resourceMegaportPortRead(d, m)
+	return resourceMegaportPortRead(ctx, d, m)
 }
 
-func resourceMegaportPortDelete(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPortDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	err := cfg.Client.DeletePort(d.Id())
 	if err != nil && err != api.ErrNotFound {
-		return err
+		return diag.FromErr(err)
 	}
 	if err == api.ErrNotFound {
 		log.Printf("resourceMegaportPortDelete: resource not found, deleting anyway")

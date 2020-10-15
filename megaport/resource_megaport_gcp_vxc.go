@@ -1,21 +1,24 @@
 package megaport
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportGcpVxc() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMegaportGcpVxcCreate,
-		Read:   resourceMegaportGcpVxcRead,
-		Update: resourceMegaportGcpVxcUpdate,
-		Delete: resourceMegaportGcpVxcDelete,
+		CreateContext: resourceMegaportGcpVxcCreate,
+		ReadContext:   resourceMegaportGcpVxcRead,
+		UpdateContext: resourceMegaportGcpVxcUpdate,
+		DeleteContext: resourceMegaportGcpVxcDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -86,7 +89,7 @@ func flattenVxcEndGcp(configProductUid string, v *api.ProductAssociatedVxc) []in
 	}}
 }
 
-func resourceMegaportGcpVxcRead(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportGcpVxcRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetVxc(d.Id())
 	if err != nil {
@@ -99,28 +102,28 @@ func resourceMegaportGcpVxcRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	if err := d.Set("name", p.ProductName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("rate_limit", int(p.RateLimit)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("a_end", flattenVxcEnd(p.AEnd)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	puid := ""
 	if v := d.Get("b_end").([]interface{}); len(v) > 0 {
 		puid = v[0].(map[string]interface{})["product_uid"].(string)
 	}
 	if err := d.Set("b_end", flattenVxcEndGcp(puid, p)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func resourceMegaportGcpVxcCreate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportGcpVxcCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
@@ -140,24 +143,24 @@ func resourceMegaportGcpVxcCreate(d *schema.ResourceData, m interface{}) error {
 	if *input.VlanA > 0 {
 		ok, err := cfg.Client.GetPortVlanIdAvailable(*input.ProductUidA, *input.VlanA)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		if !ok {
-			return fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, *input.ProductUidA)
+			return diag.FromErr(fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, *input.ProductUidA))
 		}
 	}
 	uid, err := cfg.Client.CreateCloudVxc(input)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
 	if err := waitUntilVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	return resourceMegaportGcpVxcRead(d, m)
+	return resourceMegaportGcpVxcRead(ctx, d, m)
 }
 
-func resourceMegaportGcpVxcUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportGcpVxcUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
@@ -176,36 +179,36 @@ func resourceMegaportGcpVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	if *input.VlanA > 0 {
 		ok, err := cfg.Client.GetPortVlanIdAvailable(a["product_uid"].(string), *input.VlanA)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		if !ok {
-			return fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, a["product_uid"].(string))
+			return diag.FromErr(fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, a["product_uid"].(string)))
 		}
 	}
 	if err := cfg.Client.UpdateCloudVxc(input); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := waitUntilVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := waitUntilGcpVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	return resourceMegaportGcpVxcRead(d, m)
+	return resourceMegaportGcpVxcRead(ctx, d, m)
 }
 
-func resourceMegaportGcpVxcDelete(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportGcpVxcDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	err := cfg.Client.DeleteVxc(d.Id())
 	if err != nil && err != api.ErrNotFound {
-		return err
+		return diag.FromErr(err)
 	}
 	if err == api.ErrNotFound {
 		log.Printf("[DEBUG] VXC (%s) not found, deleting from state anyway", d.Id())
 		return nil
 	}
 	if err := waitUntilVxcIsDeleted(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
