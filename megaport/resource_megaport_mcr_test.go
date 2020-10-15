@@ -59,7 +59,7 @@ func TestAccMegaportMcr2_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rAsn := 1 + acctest.RandIntRange(0, math.MaxInt32)
+	rAsn := acctest.RandIntRange(1, math.MaxInt32)
 	configValuesNew := mergeMaps(configValues, map[string]interface{}{
 		"asn":        rAsn,
 		"rate_limit": 2500,

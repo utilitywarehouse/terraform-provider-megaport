@@ -27,7 +27,7 @@ func TestAccMegaportGcpVxc_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rpk = fmt.Sprintf("%s/europe-west1/%d", rpk, acctest.RandIntRange(0, 2)+1)
+	rpk = fmt.Sprintf("%s/europe-west1/%d", rpk, acctest.RandIntRange(1, 3))
 	configValues := map[string]interface{}{
 		"uid":        rName,
 		"nameRegex":  "London",
