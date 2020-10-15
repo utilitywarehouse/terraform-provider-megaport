@@ -1,6 +1,6 @@
 module github.com/utilitywarehouse/terraform-provider-megaport
 
-go 1.13
+go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.28.9 // indirect
