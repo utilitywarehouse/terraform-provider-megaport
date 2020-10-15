@@ -43,112 +43,13 @@ func init() {
 	})
 }
 
-func TestAccMegaportMcr1_basic(t *testing.T) {
-	var mcr, mcrUpdated, mcrNew api.Product
-	rName := "t" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	configValues := map[string]interface{}{
-		"uid":         rName,
-		"mcr_version": 1,
-		"location":    "Digital Realty LHR20", // mcr1
-		"rate_limit":  100,
-	}
-	cfg, err := newTestAccConfig("megaport_mcr_basic", configValues, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	cfgUpdate, err := newTestAccConfig("megaport_mcr_full", configValues, 1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rAsn := 1 + acctest.RandIntRange(0, math.MaxInt32)
-	configValuesNew := mergeMaps(configValues, map[string]interface{}{
-		"asn":        rAsn,
-		"term":       12,
-		"rate_limit": 500,
-	})
-	cfgForceNew, err := newTestAccConfig("megaport_mcr_full", configValuesNew, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckResourceDestroy,
-		Steps: []resource.TestStep{
-			{
-				PreConfig: func() { cfg.log() },
-				Config:    cfg.Config,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckResourceExists("megaport_mcr.foo", &mcr),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "name", "terraform_acctest_"+rName),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "rate_limit", "100"),
-					resource.TestCheckResourceAttrSet("megaport_mcr.foo", "asn"),
-					resource.TestCheckResourceAttrPair("megaport_mcr.foo", "location_id", "data.megaport_location.foo", "id"),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "term", "1"),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "invoice_reference", ""),
-				),
-			},
-			{
-				ResourceName:      "megaport_mcr.foo",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				PreConfig: func() { cfgUpdate.log() },
-				Config:    cfgUpdate.Config,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckResourceExists("megaport_mcr.foo", &mcrUpdated),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "name", "terraform_acctest_"+rName),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "rate_limit", "100"),
-					resource.TestCheckResourceAttrSet("megaport_mcr.foo", "asn"),
-					resource.TestCheckResourceAttrPair("megaport_mcr.foo", "location_id", "data.megaport_location.foo", "id"),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "term", "1"),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "invoice_reference", rName),
-				),
-			},
-			{
-				ResourceName:      "megaport_mcr.foo",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				PreConfig: func() { cfgForceNew.log() },
-				Config:    cfgForceNew.Config,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckResourceExists("megaport_mcr.foo", &mcrNew),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "name", "terraform_acctest_"+rName),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "rate_limit", "500"),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "asn", strconv.FormatUint(uint64(rAsn), 10)),
-					resource.TestCheckResourceAttrPair("megaport_mcr.foo", "location_id", "data.megaport_location.foo", "id"),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "term", "12"),
-					resource.TestCheckResourceAttr("megaport_mcr.foo", "invoice_reference", rName),
-				),
-			},
-			{
-				ResourceName:      "megaport_mcr.foo",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-
-	if mcr.ProductUid != mcrUpdated.ProductUid {
-		t.Errorf("TestAccMegaportMcr_basic: expected the MCR to be updated but the resource ids differ")
-	}
-	if mcr.ProductUid == mcrNew.ProductUid {
-		t.Errorf("TestAccMegaportMcr_basic: expected the MCR to be recreated but the resource ids are identical")
-	}
-}
-
 func TestAccMegaportMcr2_basic(t *testing.T) {
 	var mcr, mcrUpdated, mcrNew api.Product
 	rName := "t" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	configValues := map[string]interface{}{
-		"uid":         rName,
-		"mcr_version": 2,
-		"location":    "Global Switch London East",
-		"rate_limit":  1000,
+		"uid":        rName,
+		"location":   "Global Switch London East",
+		"rate_limit": 1000,
 	}
 	cfg, err := newTestAccConfig("megaport_mcr_basic", configValues, 0)
 	if err != nil {

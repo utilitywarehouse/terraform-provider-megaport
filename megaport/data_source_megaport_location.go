@@ -26,12 +26,6 @@ func dataSourceMegaportLocation() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsValidRegExp,
 			},
-			"mcr_available": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntInSlice([]int{1, 2}),
-			},
 		},
 	}
 }
@@ -61,15 +55,6 @@ func dataSourceMegaportLocationRead(d *schema.ResourceData, m interface{}) error
 		nr := regexp.MustCompile(nameRegex.(string))
 		for _, loc := range megaportLocations {
 			if nr.MatchString(loc.Name) {
-				filtered = append(filtered, loc)
-			}
-		}
-	}
-	if mcrAvailable, ok := d.GetOk("mcr_available"); ok {
-		unfiltered := filtered
-		filtered = []*api.Location{}
-		for _, loc := range unfiltered {
-			if loc.Products.McrVersion == uint64(mcrAvailable.(int)) {
 				filtered = append(filtered, loc)
 			}
 		}
