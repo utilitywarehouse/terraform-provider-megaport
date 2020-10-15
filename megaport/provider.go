@@ -5,7 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/mutexkv"
@@ -19,7 +18,7 @@ type Config struct {
 	Client *api.Client
 }
 
-func Provider() terraform.ResourceProvider {
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"token": {

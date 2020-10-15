@@ -42,11 +42,11 @@ func dataSourceMegaportPartnerPort() *schema.Resource {
 				Elem:         dataSourceMegaportPartnerPortGcp(),
 			},
 			"marketplace": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"aws", "marketplace"},
-				Elem:          dataSourceMegaportPartnerPortMarketplace(),
+				Type:         schema.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"aws", "gcp", "marketplace"},
+				Elem:         dataSourceMegaportPartnerPortMarketplace(),
 			},
 			"bandwidths": {
 				Type: schema.TypeList,
