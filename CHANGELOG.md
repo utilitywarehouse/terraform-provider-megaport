@@ -1,3 +1,9 @@
+## 0.1.0 (October 15, 2020)
+
+BREAKING CHANGES:
+
+* Removed support for Megaport Cloud Router v1 ([#6](https://github.com/utilitywarehouse/terraform-provider-megaport/pull/6))
+
 ## 0.1.0-rc.3 (October 14, 2020)
 
 NOTES:
@@ -8,14 +14,12 @@ BUG FIXES:
 
 * resource/megaport_mcr: fix perpetual diff after import
 
-
 ## 0.1.0-rc.2 (February 27, 2020)
 
 BUG FIXES:
 
 * data-source/megaport_partner_port: use a randomised key to produce consistent
 results ([#1](https://github.com/utilitywarehouse/terraform-provider-megaport/issues/1))
-
 
 ## 0.1.0-rc.1 (February 21, 2020)
 
@@ -34,4 +38,3 @@ FEATURES:
 * **New Data Source:** `megaport_location`
 * **New Data Source:** `megaport_partner_port`
 * **New Data Source:** `megaport_port`
-
