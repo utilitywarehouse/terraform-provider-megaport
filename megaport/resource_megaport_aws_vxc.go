@@ -23,7 +23,7 @@ func resourceMegaportAwsVxc() *schema.Resource {
 		DeleteContext: resourceMegaportAwsVxcDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

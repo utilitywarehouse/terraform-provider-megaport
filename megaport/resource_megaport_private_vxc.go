@@ -20,7 +20,7 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 		DeleteContext: resourceMegaportPrivateVxcDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

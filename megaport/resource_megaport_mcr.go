@@ -20,7 +20,7 @@ func resourceMegaportMcr() *schema.Resource {
 		DeleteContext: resourceMegaportMcrDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

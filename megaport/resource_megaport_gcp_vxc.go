@@ -21,7 +21,7 @@ func resourceMegaportGcpVxc() *schema.Resource {
 		DeleteContext: resourceMegaportGcpVxcDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
