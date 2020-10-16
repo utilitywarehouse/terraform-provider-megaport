@@ -29,6 +29,17 @@ archives:
     files:
       - none*  # only package the binary
 
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
 checksum:
-  name_template: 'SHA256SUMS.txt'
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS.txt'
   algorithm: sha256
