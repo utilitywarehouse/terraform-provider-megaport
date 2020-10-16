@@ -1,33 +1,33 @@
 project_name: terraform-provider-megaport
 
 builds:
-- binary: "{{ .ProjectName }}_{{.Version}}_x4"
-  env:
-    - CGO_ENABLED=0
-  mod_timestamp: '{{ .CommitTimestamp }}'
-  flags:
-    - -trimpath
-  ldflags:
-    - '-s -w -X main.buildVersion={{.Version}} -X main.buildCommit={{.Commit}}'
-  goos:
-    - freebsd
-    - windows
-    - linux
-    - darwin
-  goarch:
-    - amd64
-    - 386
-    - arm
-    - arm64
-  ignore:
-    - goos: darwin
-      goarch: 386
+  - binary: "{{ .ProjectName }}_{{.Version}}_x4"
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X main.buildVersion={{.Version}} -X main.buildCommit={{.Commit}}"
+    goos:
+      - freebsd
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
 
 archives:
-  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format: zip
     files:
-      - none*  # only package the binary
+      - none* # only package the binary
 
 signs:
   - artifacts: checksum
@@ -41,5 +41,5 @@ signs:
       - "${artifact}"
 
 checksum:
-  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS.txt'
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS.txt"
   algorithm: sha256
