@@ -1,3 +1,11 @@
+## 0.2.0-rc.1 (October 16, 2020)
+
+NOTES:
+
+* upgrade to terraform-plugin-sdk v2.0.4
+* upgrade to go 1.15
+* migrate to context-aware CRUD methods for resources and datasources
+
 ## 0.1.0 (October 15, 2020)
 
 BREAKING CHANGES:
