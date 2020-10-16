@@ -1,28 +1,34 @@
 project_name: terraform-provider-megaport
 
 builds:
-- binary: "terraform-provider-megaport_v{{.Version}}_x4"
+- binary: "{{ .ProjectName }}_{{.Version}}_x4"
   env:
-  - CGO_ENABLED=0
+    - CGO_ENABLED=0
+  mod_timestamp: '{{ .CommitTimestamp }}'
+  flags:
+    - -trimpath
+  ldflags:
+    - '-s -w -X main.buildVersion={{.Version}} -X main.buildCommit={{.Commit}}'
   goos:
-  - darwin
-  - windows
-  - linux
+    - freebsd
+    - windows
+    - linux
+    - darwin
   goarch:
-  - amd64
-  ldflags: []
+    - amd64
+    - 386
+    - arm
+    - arm64
+  ignore:
+    - goos: darwin
+      goarch: 386
 
 archives:
-  - name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
-    format_overrides:
-    - goos: windows
-      format: zip
-    - goos: darwin
-      format: zip
-    - goos: linux
-      format: zip
+  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    format: zip
     files:
       - none*  # only package the binary
 
 checksum:
   name_template: 'SHA256SUMS.txt'
+  algorithm: sha256
