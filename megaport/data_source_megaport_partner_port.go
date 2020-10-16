@@ -1,14 +1,17 @@
 package megaport
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
 
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -18,7 +21,7 @@ var (
 
 func dataSourceMegaportPartnerPort() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMegaportPartnerPortRead,
+		ReadContext: dataSourceMegaportPartnerPortRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -42,11 +45,11 @@ func dataSourceMegaportPartnerPort() *schema.Resource {
 				Elem:         dataSourceMegaportPartnerPortGcp(),
 			},
 			"marketplace": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"aws", "marketplace"},
-				Elem:          dataSourceMegaportPartnerPortMarketplace(),
+				Type:         schema.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"aws", "gcp", "marketplace"},
+				Elem:         dataSourceMegaportPartnerPortMarketplace(),
 			},
 			"bandwidths": {
 				Type: schema.TypeList,
@@ -105,33 +108,33 @@ func dataSourceUpdatePartnerPorts(c *api.Client) error {
 	return nil
 }
 
-func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) error {
+func dataSourceMegaportPartnerPortRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	nameRegex := d.Get("name_regex").(string)
 	if v, ok := d.GetOk("aws"); ok {
 		if err := dataSourceUpdatePartnerPorts(cfg.Client); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		p, err := filterPartnerPorts(megaportPartnerPorts, "AWS", nameRegex, expandFilters(v))
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		if err := d.Set("bandwidths", []int{}); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		d.SetId(p.ProductUid)
 		return nil
 	}
 	if v, ok := d.GetOk("marketplace"); ok {
 		if err := dataSourceUpdatePartnerPorts(cfg.Client); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		p, err := filterPartnerPorts(megaportPartnerPorts, "DEFAULT", nameRegex, expandFilters(v))
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		if err := d.Set("bandwidths", []int{}); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		d.SetId(p.ProductUid)
 		return nil
@@ -145,23 +148,23 @@ func dataSourceMegaportPartnerPortRead(d *schema.ResourceData, m interface{}) er
 		// achieves getting consistent results from the endpoint.
 		randomUUID, err := uuid.GenerateUUID()
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		pk = randomUUID + "/" + strings.SplitN(pk, "/", 2)[1]
 		ports, bandwidths, err := cfg.Client.GetMegaportsForGcpPairingKey(pk)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		p, err := filterCloudPartnerPorts(ports, nameRegex)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		bw := make([]int, len(bandwidths))
 		for i, v := range bandwidths {
 			bw[i] = int(v)
 		}
 		if err := d.Set("bandwidths", bw); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		d.SetId(p.ProductUid)
 		return nil

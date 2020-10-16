@@ -1,13 +1,16 @@
 package megaport
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -17,7 +20,7 @@ var (
 
 func dataSourceMegaportLocation() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMegaportLocationRead,
+		ReadContext: dataSourceMegaportLocationRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -45,10 +48,10 @@ func dataSourceUpdateLocations(c *api.Client) error {
 	return nil
 }
 
-func dataSourceMegaportLocationRead(d *schema.ResourceData, m interface{}) error {
+func dataSourceMegaportLocationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	if err := dataSourceUpdateLocations(cfg.Client); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	var filtered []*api.Location
 	if nameRegex, ok := d.GetOk("name_regex"); ok {
@@ -60,10 +63,10 @@ func dataSourceMegaportLocationRead(d *schema.ResourceData, m interface{}) error
 		}
 	}
 	if len(filtered) < 1 {
-		return fmt.Errorf("No locations were found.")
+		return diag.FromErr(fmt.Errorf("No locations were found."))
 	}
 	if len(filtered) > 1 {
-		return fmt.Errorf("Multiple locations were found. Please use a more specific query.")
+		return diag.FromErr(fmt.Errorf("Multiple locations were found. Please use a more specific query."))
 	}
 	d.SetId(strconv.FormatUint(filtered[0].Id, 10))
 	return nil

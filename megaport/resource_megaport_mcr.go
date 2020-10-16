@@ -1,23 +1,26 @@
 package megaport
 
 import (
+	"context"
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportMcr() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMegaportMcrCreate,
-		Read:   resourceMegaportMcrRead,
-		Update: resourceMegaportMcrUpdate,
-		Delete: resourceMegaportMcrDelete,
+		CreateContext: resourceMegaportMcrCreate,
+		ReadContext:   resourceMegaportMcrRead,
+		UpdateContext: resourceMegaportMcrUpdate,
+		DeleteContext: resourceMegaportMcrDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -49,7 +52,7 @@ func resourceMegaportMcr() *schema.Resource {
 	}
 }
 
-func resourceMegaportMcrRead(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportMcrRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetMcr(d.Id())
 	if err != nil {
@@ -58,24 +61,24 @@ func resourceMegaportMcrRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	if err := d.Set("location_id", int(p.LocationId)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("name", p.ProductName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("rate_limit", int(p.PortSpeed)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("asn", int(p.Resources.VirtualRouter.McrASN)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func resourceMegaportMcrCreate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportMcrCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	input := &api.Mcr2CreateInput{
 		LocationId:       api.Uint64FromInt(d.Get("location_id")),
@@ -86,16 +89,16 @@ func resourceMegaportMcrCreate(d *schema.ResourceData, m interface{}) error {
 	}
 	uid, err := cfg.Client.CreateMcr(input)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
-	if err := waitUntilMcrIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilMcrIsConfigured(ctx, cfg.Client, *uid, 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	return resourceMegaportMcrRead(d, m)
+	return resourceMegaportMcrRead(ctx, d, m)
 }
 
-func resourceMegaportMcrUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportMcrUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	input := &api.Mcr2UpdateInput{
 		InvoiceReference: api.String(d.Get("invoice_reference")),
@@ -103,19 +106,19 @@ func resourceMegaportMcrUpdate(d *schema.ResourceData, m interface{}) error {
 		ProductUid:       api.String(d.Id()),
 	}
 	if err := cfg.Client.UpdateMcr(input); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	if err := waitUntilMcrIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilMcrIsConfigured(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	return resourceMegaportMcrRead(d, m)
+	return resourceMegaportMcrRead(ctx, d, m)
 }
 
-func resourceMegaportMcrDelete(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportMcrDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	err := cfg.Client.DeleteMcr(d.Id())
 	if err != nil && err != api.ErrNotFound {
-		return err
+		return diag.FromErr(err)
 	}
 	if err == api.ErrNotFound {
 		log.Printf("resourceMegaportMcrDelete: resource not found, deleting anyway")
@@ -123,7 +126,7 @@ func resourceMegaportMcrDelete(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func waitUntilMcrIsConfigured(client *api.Client, productUid string, timeout time.Duration) error {
+func waitUntilMcrIsConfigured(ctx context.Context, client *api.Client, productUid string, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
@@ -142,6 +145,6 @@ func waitUntilMcrIsConfigured(client *api.Client, productUid string, timeout tim
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for MCR (%s) to be configured", productUid)
-	_, err := scc.WaitForState()
+	_, err := scc.WaitForStateContext(ctx)
 	return err
 }

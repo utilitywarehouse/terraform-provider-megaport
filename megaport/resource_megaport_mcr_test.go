@@ -8,8 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -59,7 +60,7 @@ func TestAccMegaportMcr2_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rAsn := 1 + acctest.RandIntRange(0, math.MaxInt32)
+	rAsn := acctest.RandIntRange(1, math.MaxInt32)
 	configValuesNew := mergeMaps(configValues, map[string]interface{}{
 		"asn":        rAsn,
 		"rate_limit": 2500,

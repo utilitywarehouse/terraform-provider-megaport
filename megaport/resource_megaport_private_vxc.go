@@ -1,23 +1,26 @@
 package megaport
 
 import (
+	"context"
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportPrivateVxc() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMegaportPrivateVxcCreate,
-		Read:   resourceMegaportPrivateVxcRead,
-		Update: resourceMegaportPrivateVxcUpdate,
-		Delete: resourceMegaportPrivateVxcDelete,
+		CreateContext: resourceMegaportPrivateVxcCreate,
+		ReadContext:   resourceMegaportPrivateVxcRead,
+		UpdateContext: resourceMegaportPrivateVxcUpdate,
+		DeleteContext: resourceMegaportPrivateVxcDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -49,7 +52,7 @@ func resourceMegaportPrivateVxc() *schema.Resource {
 	}
 }
 
-func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPrivateVxcRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetVxc(d.Id())
 	if err != nil {
@@ -62,24 +65,24 @@ func resourceMegaportPrivateVxcRead(d *schema.ResourceData, m interface{}) error
 		return nil
 	}
 	if err := d.Set("name", p.ProductName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("rate_limit", int(p.RateLimit)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("a_end", flattenVxcEnd(p.AEnd)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("b_end", flattenVxcEnd(p.BEnd)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPrivateVxcCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
@@ -100,16 +103,16 @@ func resourceMegaportPrivateVxcCreate(d *schema.ResourceData, m interface{}) err
 	}
 	uid, err := cfg.Client.CreatePrivateVxc(input)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
-	if err := waitUntilVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilVxcIsConfigured(ctx, cfg.Client, *uid, 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	return resourceMegaportPrivateVxcRead(d, m)
+	return resourceMegaportPrivateVxcRead(ctx, d, m)
 }
 
-func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPrivateVxcUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
@@ -128,34 +131,34 @@ func resourceMegaportPrivateVxcUpdate(d *schema.ResourceData, m interface{}) err
 		input.VlanB = api.Uint64FromInt(v)
 	}
 	if err := cfg.Client.UpdatePrivateVxc(input); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	if err := waitUntilVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilVxcIsConfigured(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	if err := waitUntilPrivateVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilPrivateVxcIsUpdated(ctx, cfg.Client, input, 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	return resourceMegaportPrivateVxcRead(d, m)
+	return resourceMegaportPrivateVxcRead(ctx, d, m)
 }
 
-func resourceMegaportPrivateVxcDelete(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportPrivateVxcDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	err := cfg.Client.DeleteVxc(d.Id())
 	if err != nil && err != api.ErrNotFound {
-		return err
+		return diag.FromErr(err)
 	}
 	if err == api.ErrNotFound {
 		log.Printf("[DEBUG] VXC (%s) not found, deleting from state anyway", d.Id())
 		return nil
 	}
-	if err := waitUntilVxcIsDeleted(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilVxcIsDeleted(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func waitUntilPrivateVxcIsUpdated(client *api.Client, input *api.PrivateVxcUpdateInput, timeout time.Duration) error {
+func waitUntilPrivateVxcIsUpdated(ctx context.Context, client *api.Client, input *api.PrivateVxcUpdateInput, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
@@ -189,6 +192,6 @@ func waitUntilPrivateVxcIsUpdated(client *api.Client, input *api.PrivateVxcUpdat
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for VXC (%s) to be updated", *input.ProductUid)
-	_, err := scc.WaitForState()
+	_, err := scc.WaitForStateContext(ctx)
 	return err
 }

@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -41,7 +42,7 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 		"uid":                 rName,
 		"location":            "Equinix LD5",
 		"aws_account_id":      acctest.RandStringFromCharSet(12, "012346789"),
-		"customer_asn":        acctest.RandIntRange(1, 65535),
+		"customer_asn":        acctest.RandIntRange(1, 65536),
 		"aws_ip_address":      ipA,
 		"customer_ip_address": ipB,
 		"type":                "private",
@@ -52,7 +53,7 @@ func TestAccMegaportAwsVxc_basic(t *testing.T) {
 	}
 	configValuesUpdate := mergeMaps(configValues, map[string]interface{}{
 		"aws_account_id": acctest.RandStringFromCharSet(12, "012346789"),
-		"customer_asn":   acctest.RandIntRange(1, 65535),
+		"customer_asn":   acctest.RandIntRange(1, 65536),
 	})
 	cfgUpdate, err := newTestAccConfig("megaport_aws_vxc_full", configValuesUpdate, 1)
 	if err != nil {
@@ -188,7 +189,7 @@ func TestAccMegaportAwsVxc_basicPublic(t *testing.T) {
 		"uid":                 rName,
 		"location":            "Equinix LD5",
 		"aws_account_id":      acctest.RandStringFromCharSet(12, "012346789"),
-		"customer_asn":        acctest.RandIntRange(1, 65535),
+		"customer_asn":        acctest.RandIntRange(1, 65536),
 		"aws_ip_address":      ipA,
 		"customer_ip_address": ipB,
 		"prefixes":            []string{prefix},

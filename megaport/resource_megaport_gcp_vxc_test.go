@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
@@ -27,7 +28,7 @@ func TestAccMegaportGcpVxc_basic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rpk = fmt.Sprintf("%s/europe-west1/%d", rpk, acctest.RandIntRange(0, 2)+1)
+	rpk = fmt.Sprintf("%s/europe-west1/%d", rpk, acctest.RandIntRange(1, 3))
 	configValues := map[string]interface{}{
 		"uid":        rName,
 		"nameRegex":  "London",

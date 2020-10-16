@@ -1,28 +1,30 @@
 package megaport
 
 import (
+	"context"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 var (
-	testAccProviders map[string]terraform.ResourceProvider
+	testAccProviders map[string]*schema.Provider
 	testAccProvider  *schema.Provider
 )
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
+	testAccProvider = Provider()
+	testAccProviders = map[string]*schema.Provider{
 		"megaport": testAccProvider,
 	}
 }
 
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("Provider.InternalValidate(): %s", err)
 	}
 	if os.Getenv("TF_ACC") == "" {
@@ -55,7 +57,7 @@ func testAccPreCheck(t *testing.T) {
 	if err := os.Setenv("MEGAPORT_API_ENDPOINT", api.EndpointStaging); err != nil {
 		t.Fatal(err)
 	}
-	if err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil)); err != nil {
+	if err := testAccProvider.Configure(context.TODO(), terraform.NewResourceConfigRaw(nil)); err != nil {
 		t.Fatal(err)
 	}
 }

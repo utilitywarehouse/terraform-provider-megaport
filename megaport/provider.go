@@ -3,11 +3,11 @@ package megaport
 import (
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
+	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/mutexkv"
 )
 
 var (
@@ -18,7 +18,7 @@ type Config struct {
 	Client *api.Client
 }
 
-func Provider() terraform.ResourceProvider {
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"token": {

@@ -1,26 +1,29 @@
 package megaport
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/utilitywarehouse/terraform-provider-megaport/megaport/api"
 )
 
 func resourceMegaportAwsVxc() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMegaportAwsVxcCreate,
-		Read:   resourceMegaportAwsVxcRead,
-		Update: resourceMegaportAwsVxcUpdate,
-		Delete: resourceMegaportAwsVxcDelete,
+		CreateContext: resourceMegaportAwsVxcCreate,
+		ReadContext:   resourceMegaportAwsVxcRead,
+		UpdateContext: resourceMegaportAwsVxcUpdate,
+		DeleteContext: resourceMegaportAwsVxcDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -163,7 +166,7 @@ func expandVxcEndAws(e map[string]interface{}) *api.PartnerConfigAws {
 	return pc
 }
 
-func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportAwsVxcRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	p, err := cfg.Client.GetVxc(d.Id())
 	if err != nil {
@@ -176,28 +179,28 @@ func resourceMegaportAwsVxcRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	if err := d.Set("name", p.ProductName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("rate_limit", int(p.RateLimit)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("a_end", flattenVxcEnd(p.AEnd)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	puid := ""
 	if v := d.Get("b_end").([]interface{}); len(v) > 0 {
 		puid = v[0].(map[string]interface{})["product_uid"].(string)
 	}
 	if err := d.Set("b_end", flattenVxcEndAws(puid, p)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("invoice_reference", p.CostCentre); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportAwsVxcCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
@@ -209,7 +212,7 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 		RateLimit:     api.Uint64FromInt(d.Get("rate_limit")),
 	}
 	if v := b["aws_prefixes"].(*schema.Set).List(); len(v) > 0 && b["type"].(string) != "public" {
-		return fmt.Errorf("cannot specify 'aws_prefixes' for a private VXC")
+		return diag.FromErr(fmt.Errorf("cannot specify 'aws_prefixes' for a private VXC"))
 	}
 	if v, ok := d.GetOk("invoice_reference"); ok {
 		input.InvoiceReference = api.String(v)
@@ -220,24 +223,24 @@ func resourceMegaportAwsVxcCreate(d *schema.ResourceData, m interface{}) error {
 	if *input.VlanA > 0 {
 		ok, err := cfg.Client.GetPortVlanIdAvailable(*input.ProductUidA, *input.VlanA)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		if !ok {
-			return fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, *input.ProductUidA)
+			return diag.FromErr(fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, *input.ProductUidA))
 		}
 	}
 	uid, err := cfg.Client.CreateCloudVxc(input)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(*uid)
-	if err := waitUntilVxcIsConfigured(cfg.Client, *uid, 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilVxcIsConfigured(ctx, cfg.Client, *uid, 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	return resourceMegaportAwsVxcRead(d, m)
+	return resourceMegaportAwsVxcRead(ctx, d, m)
 }
 
-func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportAwsVxcUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	a := d.Get("a_end").([]interface{})[0].(map[string]interface{})
 	b := d.Get("b_end").([]interface{})[0].(map[string]interface{})
@@ -256,41 +259,41 @@ func resourceMegaportAwsVxcUpdate(d *schema.ResourceData, m interface{}) error {
 	if *input.VlanA > 0 {
 		ok, err := cfg.Client.GetPortVlanIdAvailable(a["product_uid"].(string), *input.VlanA)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		if !ok {
-			return fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, a["product_uid"].(string))
+			return diag.FromErr(fmt.Errorf("VLAN id %d is unavailable on product %s", *input.VlanA, a["product_uid"].(string)))
 		}
 	}
 	if err := cfg.Client.UpdateCloudVxc(input); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	if err := waitUntilVxcIsConfigured(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilVxcIsConfigured(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	if err := waitUntilAwsVxcIsUpdated(cfg.Client, input, 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilAwsVxcIsUpdated(ctx, cfg.Client, input, 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
-	return resourceMegaportAwsVxcRead(d, m)
+	return resourceMegaportAwsVxcRead(ctx, d, m)
 }
 
-func resourceMegaportAwsVxcDelete(d *schema.ResourceData, m interface{}) error {
+func resourceMegaportAwsVxcDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	cfg := m.(*Config)
 	err := cfg.Client.DeleteVxc(d.Id())
 	if err != nil && err != api.ErrNotFound {
-		return err
+		return diag.FromErr(err)
 	}
 	if err == api.ErrNotFound {
 		log.Printf("[DEBUG] VXC (%s) not found, deleting from state anyway", d.Id())
 		return nil
 	}
-	if err := waitUntilVxcIsDeleted(cfg.Client, d.Id(), 5*time.Minute); err != nil {
-		return err
+	if err := waitUntilVxcIsDeleted(ctx, cfg.Client, d.Id(), 5*time.Minute); err != nil {
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput, timeout time.Duration) error {
+func waitUntilAwsVxcIsUpdated(ctx context.Context, client *api.Client, input *api.CloudVxcUpdateInput, timeout time.Duration) error {
 	scc := &resource.StateChangeConf{
 		Target: []string{api.ProductStatusConfigured, api.ProductStatusLive},
 		Refresh: func() (interface{}, string, error) {
@@ -347,6 +350,6 @@ func waitUntilAwsVxcIsUpdated(client *api.Client, input *api.CloudVxcUpdateInput
 		Delay:      5 * time.Second,
 	}
 	log.Printf("[INFO] Waiting for VXC (%s) to be updated", *input.ProductUid)
-	_, err := scc.WaitForState()
+	_, err := scc.WaitForStateContext(ctx)
 	return err
 }

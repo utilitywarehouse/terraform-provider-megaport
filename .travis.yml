@@ -4,7 +4,7 @@ services:
 - docker
 language: go
 go:
-- "1.13.x"
+- "1.15.x"
 
 env:
   global: CGO_ENABLED=0
@@ -14,16 +14,16 @@ matrix:
   allow_failures:
     - go: tip
   include:
-    - go: "1.13.x"
+    - go: "1.15.x"
       name: "Code Lint"
       script: make lint
-    - go: "1.13.x"
+    - go: "1.15.x"
       name: "Code UnitTest"
       script: make test
-    - go: "1.13.x"
+    - go: "1.15.x"
       name: "Dependencies"
       script: make depscheck
-    - go: "1.13.x"
+    - go: "1.15.x"
       name: "Website"
       script:
         - make docscheck
