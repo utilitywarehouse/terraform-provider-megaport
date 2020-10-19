@@ -51,6 +51,9 @@ $ $GOPATH/bin/terraform-provider-megaport
 
 ## Using the Provider
 
+You can simply use the provider published in the Terraform Registry [here](https://registry.terraform.io/providers/utilitywarehouse/megaport/latest)
+to manage your terraform resources.
+
 To use a custom-built provider in your Terraform environment (e.g. the provider
 binary from the build instructions above), follow the instructions to
 [install it as a plugin](https://www.terraform.io/docs/plugins/basics.html#installing-plugins).
