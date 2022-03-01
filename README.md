@@ -26,7 +26,13 @@ $ go run .
 ```
 To revoke the current token (and get a new one) you can pass the `--reset` flag.
 
-
+By default, the above script will obtain a token to use with megaport staging
+api environment. You can set `MEGAPORT_ENDPOINT` environment variable to specify
+an alternative endpoint. For example, to get a token for megaport production
+api, you can use the above target as:
+```sh
+MEGAPORT_ENDPOINT=https://api.megaport.com make reset-token
+```
 ## Developing the Provider
 
 If you wish to work on the provider, you'll first need
