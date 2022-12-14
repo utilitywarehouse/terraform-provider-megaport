@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/pquerna/otp v1.2.0
+	github.com/pquerna/otp v1.4.0
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
