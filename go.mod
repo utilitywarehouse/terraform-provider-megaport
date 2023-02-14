@@ -3,7 +3,7 @@ module github.com/utilitywarehouse/terraform-provider-megaport
 go 1.15
 
 require (
-	github.com/aws/aws-sdk-go v1.28.9 // indirect
+	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/google/go-cmp v0.5.0
 	github.com/google/uuid v1.1.1
