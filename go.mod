@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/aws/aws-sdk-go v1.28.9 // indirect
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/google/go-cmp v0.5.0
+	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-hclog v0.12.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2
